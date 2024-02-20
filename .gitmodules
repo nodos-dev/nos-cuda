@@ -1,32 +1,6 @@
-[submodule "Shaders"]
-	path = Plugins/Shaders
-	url = https://github.com/mediaz/shaders
-[submodule "mzCNN/External/cnn-models"]
-	path = Plugins/nosCNN/External/cnn-models
-	url = https://github.com/mediaz/cnn-models.git
-[submodule "mzWebRTC/External"]
-	path = Plugins/nosWebRTC/External
-	url = https://github.com/mediaz/webRTC-builds.git
-[submodule "Subsystems/mzVulkanSubsystem/External/nosVulkan"]
-	path = Subsystems/nosVulkanSubsystem/External/nosVulkan
-	url = https://github.com/mediaz/nosVulkan.git
-[submodule "Subsystems/nosVulkanSubsystem/External/nosVulkan"]
-	url = https://github.com/mediaz/nosVulkan.git
-[submodule "Plugins/nosCubeMask/External/glm"]
-	path = Plugins/nosCubeMask/External/glm
-	url = https://github.com/g-truc/glm.git
-[submodule "Subsystems/nosShaderCompiler/Binaries/tools"]
-	path = Subsystems/nosShaderCompiler/Binaries/tools
+[submodule "tools"]
+	path = tools
 	url = https://github.com/mediaz/tools.git
-[submodule "Plugins/nosTest/External/glfw"]
-	path = Plugins/nosTest/External/glfw
-	url = https://github.com/glfw/glfw.git
-[submodule "Subsystems/nosVulkanSubsystem/External/subprocess"]
-	path = Subsystems/nosVulkanSubsystem/External/subprocess
-	url = https://github.com/benman64/subprocess.git
-[submodule "Subsystems/nosPython/External/pybind11"]
-	path = Subsystems/nosPython/External/pybind11
-	url = https://github.com/pybind/pybind11.git
 [submodule "Subsystems/nosAI/External/ONNXRT"]
 	path = Subsystems/nosAI/External/ONNXRT
 	url = https://github.com/mediaz/onnxrt-dependencies.git
