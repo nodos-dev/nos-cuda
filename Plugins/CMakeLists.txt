@@ -1,9 +1,7 @@
 # Copyright MediaZ AS. All Rights Reserved.
 
 cmake_minimum_required(VERSION 3.24.2)
-project("Plugins")
-
-set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External)
+project("AI Plugins")
 
 function(add_folder_as_plugin_project NAME DEPENDENCIES INCLUDE_FOLDERS)
     project(${NAME})
@@ -75,9 +73,6 @@ endfunction()
 
 # Update plugins.json if you add dependencies, so that CD can create releases.
 
-# Common dependencies
-add_subdirectory(External)
-
 # Nodos Plugin SDK
 if (NOT WITH_NODOS)
 	cmake_path(SET NODOS_SDK_DIR_PATH $ENV{NODOS_SDK_DIR})
@@ -106,17 +101,6 @@ if (NOT ${COMPILE_SHADERS_RESULT} EQUAL "0")
     message(FATAL_ERROR "Failed to compile shaders. Process returned ${COMPILE_SHADERS_RESULT}.")
 endif()
 
-add_subdirectory(nosMath)
-add_subdirectory(nosAJA)
-add_subdirectory(nosFilters)
-add_subdirectory(nosUtilities)
-add_subdirectory(nosTest)
-add_subdirectory(nosCNN)
-add_subdirectory(nosWebRTC)
-add_subdirectory(nosCubeMask)
 add_subdirectory(nosTensors)
 add_subdirectory(nosONNX)
 add_subdirectory(nosInterop)
-
-get_targets(PLUGINS_COMMON_EXTERNAL_TARGETS "./External")
-group_targets("${PLUGINS_COMMON_EXTERNAL_TARGETS}" "External")

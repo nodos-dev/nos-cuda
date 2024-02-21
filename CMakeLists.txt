@@ -1,7 +1,7 @@
 # Copyright MediaZ AS. All Rights Reserved.
 
 cmake_minimum_required(VERSION 3.24.2)
-project("NOSModules")
+project("NOSAIModules")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -32,13 +32,14 @@ macro(group_targets targets folder_name)
 endmacro()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/CMake/GenerateFlatbuffers.cmake)
-set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems/nosShaderCompiler/Binaries/tools/${CMAKE_SYSTEM_NAME})
+
+set(NOS_SYS_VULKAN_INCLUDE_FOLDER $ENV{NOS_SYS_VULKAN_INCLUDES})
 
 set(SUBSYSTEMS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems)
 add_subdirectory("Subsystems" "${CMAKE_CURRENT_BINARY_DIR}/Subsystems")
 get_targets(SUBSYSTEM_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/Subsystems")
-group_targets("${SUBSYSTEM_TARGETS}" "NOS Subsystems")
+group_targets("${SUBSYSTEM_TARGETS}" "NOS AI Subsystems")
 
 add_subdirectory("Plugins" "${CMAKE_CURRENT_BINARY_DIR}/Plugins")
 get_targets(PLUGIN_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/Plugins")
-group_targets("${PLUGIN_TARGETS}" "NOS Plugins")
+group_targets("${PLUGIN_TARGETS}" "NOS AI Plugins")
