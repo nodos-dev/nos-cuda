@@ -15,6 +15,17 @@ NOS_REGISTER_NAME(TextureToBuffer)
 NOS_REGISTER_NAME(TextureFormatConverter)
 NOS_REGISTER_NAME(Input)
 NOS_REGISTER_NAME(Output)
+NOS_REGISTER_NAME(FloatToIntFormat)
+NOS_REGISTER_NAME(FloatToIntFormat_Pass)
+
+NOS_REGISTER_NAME(InputTexture)
+NOS_REGISTER_NAME(outputType)
+NOS_REGISTER_NAME(DST_TEXTURE_UINT32)
+NOS_REGISTER_NAME(DST_TEXTURE_UINT16)
+NOS_REGISTER_NAME(DST_TEXTURE_UINT8)
+NOS_REGISTER_NAME(DST_TEXTURE_INT32)
+NOS_REGISTER_NAME(DST_TEXTURE_INT16)
+NOS_REGISTER_NAME(DST_TEXTURE_INT8)
 
 nosResult RegisterTextureToBuffer(nosNodeFunctions* outFunctions);
 nosResult RegisterVulkanBufferToCUDABuffer(nosNodeFunctions* outFunctions);
@@ -46,7 +57,8 @@ extern "C"
 
 		RegisterTextureToBuffer(outFunctions[0]);
 		RegisterVulkanBufferToCUDABuffer(outFunctions[1]);
-		RegisterTextureFormatConverter(outFunctions[2]);
+		returnRes = RegisterTextureFormatConverter(outFunctions[2]);
+		return returnRes;
 		//RegisterCUDAToVulkan(outFunctions[2]);
 
 		return NOS_RESULT_SUCCESS;

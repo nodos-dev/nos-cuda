@@ -116,6 +116,77 @@ __forceinline void CreateOrUpdateCUDABufferPin(BufferPin bufferPin, nosUUID* Nod
 	res = nosEngine.EnqueueEvent(&createPinEvent);
 }
 
+/*
+!!! Integer formats can only be converted to other integer formats with the same signedness. !!!
+Retrieved from https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdBlitImage.html , 21/02/2024
+*/
+
+__forceinline bool IsFormatUINT(nosFormat format) {
+	switch (format) {
+		case NOS_FORMAT_R8_UINT:
+		case NOS_FORMAT_R8G8_UINT:
+		case NOS_FORMAT_B8G8R8_UINT:
+		case NOS_FORMAT_R8G8B8A8_UINT:
+		case NOS_FORMAT_R16_UINT:
+		case NOS_FORMAT_R16G16B16_UINT:
+		case NOS_FORMAT_R16G16_UINT:
+		case NOS_FORMAT_R16G16B16A16_UINT:
+		case NOS_FORMAT_R16_USCALED:
+		case NOS_FORMAT_R16G16_USCALED:
+		case NOS_FORMAT_R16G16B16_USCALED:
+		case NOS_FORMAT_R16G16B16A16_USCALED:
+		case NOS_FORMAT_R32_UINT:
+		case NOS_FORMAT_R32G32_UINT:
+		case NOS_FORMAT_R32G32B32_UINT:
+		case NOS_FORMAT_R32G32B32A32_UINT:
+		case NOS_FORMAT_A2R10G10B10_UINT_PACK32:
+		{
+			return true;
+		}
+		default: 
+		{
+			return false;
+		}
+	}
+}
+
+__forceinline bool IsFormatINT(nosFormat format) {
+	switch (format) {
+		case NOS_FORMAT_R16_SINT:
+		case NOS_FORMAT_R16G16_SINT:
+		case NOS_FORMAT_R16G16B16_SINT:
+		case NOS_FORMAT_R16G16B16A16_SINT:
+		case NOS_FORMAT_A2R10G10B10_SINT_PACK32:
+		case NOS_FORMAT_A2R10G10B10_SSCALED_PACK32:
+		case NOS_FORMAT_R32_SINT:
+		case NOS_FORMAT_R32G32_SINT:
+		case NOS_FORMAT_R32G32B32_SINT:
+		case NOS_FORMAT_R32G32B32A32_SINT:
+		case NOS_FORMAT_R16_SSCALED:
+		case NOS_FORMAT_R16G16_SSCALED:
+		case NOS_FORMAT_R16G16B16_SSCALED:
+		case NOS_FORMAT_R16G16B16A16_SSCALED:
+		{
+			return true;
+		}
+		default:
+		{
+			return false;
+		}
+
+	}
+}
+
+__forceinline bool IsBlitCompatible(nosFormat srcFormat, nosFormat dstFormat) {
+	bool isSrcUINT = IsFormatUINT(srcFormat);
+	bool isDstUINT = IsFormatUINT(dstFormat);
+	bool isSrcINT = IsFormatINT(srcFormat);
+	bool isDstInt = IsFormatINT(dstFormat);
+
+	return (isSrcUINT && isDstUINT) || (isSrcINT && isDstInt) || (!isSrcINT && !isDstInt && !isSrcUINT && !isDstUINT);
+}
+
+
 __forceinline short GetComponentBytesFromVulkanFormat(nosFormat format)
 {
 	switch (format) {
