@@ -71,6 +71,8 @@ struct TextureFormatConverter : nos::NodeContext
 		auto pinValues = nos::GetPinValues(args);
 		InputTexture = nos::vkss::DeserializeTextureInfo(pinValues[NSN_Input]);
 		auto Out = nos::vkss::DeserializeTextureInfo(pinValues[NSN_Output]);
+		//TODO: Also should be able to convert from INT texture to FLOAT textures
+		//TODO: Also should be able to convert between signed integer and unsigned integers
 		//TODO: Editor view and AJA does not expects INTEGER formats hence both the editor and ajaOut view does not show correct image.
 		if (!IsBlitCompatible(InputTexture.Info.Texture.Format, Out.Info.Texture.Format)) {
 			struct OutputType { int outputType; };
