@@ -17,6 +17,7 @@ struct TextureFormatConverter : nos::NodeContext
 	nosUUID NodeUUID = {}, InputUUID = {}, OutputUUID = {}, FormatUUID = {};
 	nos::sys::vulkan::Format OutputFormat = {};
 	nosResourceShareInfo outBuf = {};
+	nosResourceShareInfo inBuf = {};
 	TextureFormatConverter(nosFbNode const* node) : NodeContext(node)
 	{
 		NodeUUID = *node->id();
@@ -70,6 +71,7 @@ struct TextureFormatConverter : nos::NodeContext
 		auto pinValues = nos::GetPinValues(args);
 		InputTexture = nos::vkss::DeserializeTextureInfo(pinValues[NSN_Input]);
 		auto Out = nos::vkss::DeserializeTextureInfo(pinValues[NSN_Output]);
+		//TODO: Editor view and AJA does not expects INTEGER formats hence both the editor and ajaOut view does not show correct image.
 		if (!IsBlitCompatible(InputTexture.Info.Texture.Format, Out.Info.Texture.Format)) {
 			struct OutputType { int outputType; };
 			OutputType out = {};
@@ -111,7 +113,7 @@ struct TextureFormatConverter : nos::NodeContext
 				inputs.emplace_back(nos::vkss::ShaderBinding(NSN_InputTexture, InputTexture));
 				inputs.emplace_back(nos::vkss::ShaderBinding<OutputType>(NSN_outputType, out));
 
-				//Not the best idea but...??
+				//Validation layer does not like this but we sure that only true desired texture will be used in shader
 				inputs.emplace_back(nos::vkss::ShaderBinding(NSN_DST_TEXTURE_UINT32, Out));
 				inputs.emplace_back(nos::vkss::ShaderBinding(NSN_DST_TEXTURE_UINT16, Out));
 				inputs.emplace_back(nos::vkss::ShaderBinding(NSN_DST_TEXTURE_UINT8, Out));
@@ -146,21 +148,38 @@ struct TextureFormatConverter : nos::NodeContext
 
 
 
-		//outBuf.Info.Type = NOS_RESOURCE_TYPE_BUFFER;
-		//outBuf.Info.Buffer.Size = Out.Memory.Size;
-		//outBuf.Info.Buffer.Usage = nosBufferUsage(NOS_BUFFER_USAGE_TRANSFER_SRC | NOS_BUFFER_USAGE_TRANSFER_DST);
+		outBuf.Info.Type = NOS_RESOURCE_TYPE_BUFFER;
+		outBuf.Info.Buffer.Size = Out.Memory.Size;
+		outBuf.Info.Buffer.Usage = nosBufferUsage(NOS_BUFFER_USAGE_TRANSFER_SRC | NOS_BUFFER_USAGE_TRANSFER_DST);
+
+		inBuf.Info.Type = NOS_RESOURCE_TYPE_BUFFER;
+		inBuf.Info.Buffer.Size = Out.Memory.Size;
+		inBuf.Info.Buffer.Usage = nosBufferUsage(NOS_BUFFER_USAGE_TRANSFER_SRC | NOS_BUFFER_USAGE_TRANSFER_DST);
 		//if(outBuf.Memory.Handle == NULL)
 		//	nosVulkan->CreateResource(&outBuf);
+		//if (inBuf.Memory.Handle == NULL)
+		//	nosVulkan->CreateResource(&inBuf);
+
 		//nosCmd cmd2 = {};
 		//nosGPUEvent waitEvent2 = {};
 		//nosCmdEndParams endParams2 = { .ForceSubmit = true, .OutGPUEventHandle = &waitEvent2 };
-		//nosVulkan->Begin("TexToTex", &cmd);
-		//nosVulkan->Copy(cmd2, &Out, &outBuf, nullptr);
+		//nosVulkan->Begin("TexToTex", &cmd2);
+		//nosVulkan->Copy(cmd2, &InputTexture, &inBuf, nullptr);
 		//nosVulkan->End(cmd2, &endParams2);
 		//nosVulkan->WaitGpuEvent(&waitEvent2, UINT64_MAX);
 
 
-		//uint8_t* cpu = nosVulkan->Map(&outBuf);
+		//uint8_t* cpuInput = nosVulkan->Map(&inBuf);
+
+		//nosCmd cmd3 = {};
+		//nosGPUEvent waitEvent3 = {};
+		//nosCmdEndParams endParams3 = { .ForceSubmit = true, .OutGPUEventHandle = &waitEvent3 };
+		//nosVulkan->Begin("TexToTex", &cmd3);
+		//nosVulkan->Copy(cmd3, &Out, &outBuf, nullptr);
+		//nosVulkan->End(cmd3, &endParams3);
+		//nosVulkan->WaitGpuEvent(&waitEvent3, UINT64_MAX);
+		//
+		//uint8_t* cpuOut = nosVulkan->Map(&outBuf);
 		
 		//nosResourceShareInfo out = nos::vkss::DeserializeTextureInfo(pinValues[NSN_Output]);
 		//nosCmd cmd2;
