@@ -46,6 +46,7 @@ struct TextureFormatConverter : nos::NodeContext
 	{
 		if (InputUUID == pinId) {
 			InputTexture = nos::vkss::DeserializeTextureInfo(value.Data);
+			PrepareResources();
 		}
 		if (FormatUUID == pinId) {
 			const char* SelectedFormat = (const char*)value.Data;
@@ -196,8 +197,13 @@ struct TextureFormatConverter : nos::NodeContext
 	}
 
 	void PrepareResources() {
+		if(OutputTexture.Info.Texture.Width == InputTexture.Info.Texture.Width && OutputTexture.Info.Texture.Height == InputTexture.Info.Texture.Height
+			&& OutputTexture.Info.Texture.Format == nosFormat((int)OutputFormat) ) {
+			//No change
+			return;
+		}
 		if (OutputTexture.Memory.Handle != NULL) {
-			//nosVulkan->DestroyResource(&OutputTexture);
+			nosVulkan->DestroyResource(&OutputTexture);
 		}
 
 		OutputTexture.Info.Type = NOS_RESOURCE_TYPE_TEXTURE;
@@ -209,6 +215,10 @@ struct TextureFormatConverter : nos::NodeContext
 		OutputTexture.Info.Texture.Width = InputTexture.Info.Texture.Width;
 
 		nosVulkan->CreateResource(&OutputTexture);
+		UpdateOutputPin();
+	}
+
+	void UpdateOutputPin() {
 		auto TTexture = nos::vkss::ConvertTextureInfo(OutputTexture);
 		flatbuffers::FlatBufferBuilder fbb;
 		auto TextureTable = nos::sys::vulkan::Texture::Pack(fbb, &TTexture);
