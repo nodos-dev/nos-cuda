@@ -88,6 +88,7 @@ namespace nos::cudass
 	nosResult GetCUDAEventElapsedTime(nosCUDAStream stream, nosCUDAEvent theEvent, float* elapsedTime); //Get elapsed time between now and the measureEvent
 
 	nosResult CopyBuffers(nosCUDABufferInfo* source, nosCUDABufferInfo* destination);
+	nosResult CopyBuffersAsync(nosCUDAStream stream, nosCUDABufferInfo* source, nosCUDABufferInfo* destination);
 	nosResult AddCallback(nosCUDAStream stream, nosCUDACallbackFunction callback, void* callbackData);
 	nosResult WaitExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem);
 	nosResult SignalExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem);

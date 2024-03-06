@@ -53,6 +53,7 @@ namespace nos::cudass
 		subsys->CreateBufferPinned = CreateBufferPinned;
 		subsys->CreateBuffer = CreateBuffer;
 		subsys->CopyBuffers = CopyBuffers;
+		subsys->CopyBuffersAsync = CopyBuffersAsync;
 		subsys->GetCUDABufferFromAddress = GetCUDABufferFromAddress;
 
 		subsys->DestroyBuffer = DestroyBuffer;
@@ -361,6 +362,59 @@ namespace nos::cudass
 				break;
 			default:
 				break;
+		}
+		CHECK_CUDA_RT_ERROR(res);
+		return NOS_RESULT_SUCCESS;
+	}
+	nosResult CopyBuffersAsync(nosCUDAStream stream, nosCUDABufferInfo* source, nosCUDABufferInfo* destination)
+	{
+		CHECK_CONTEXT_SWITCH();
+		CHECK_VALID_ARGUMENT(source);
+		CHECK_VALID_ARGUMENT(destination);
+
+		if (source->MemoryType == MEMORY_TYPE_UNREGISTERED || destination->MemoryType == MEMORY_TYPE_UNREGISTERED) {
+			nosEngine.LogE("Invalid memory type for CUDA memcopy operation.");
+			return NOS_RESULT_FAILED;
+		}
+		if (source->CreateInfo.AllocationSize != destination->CreateInfo.AllocationSize) {
+			nosEngine.LogW("nosCUDABuffers have size mismatch, trimming will be performed for copying.");
+		}
+
+		cudaError res = cudaSuccess;
+		size_t safeCopySize = std::min(source->CreateInfo.AllocationSize, destination->CreateInfo.BlockSize);
+		switch (source->MemoryType) {
+		case MEMORY_TYPE_HOST:
+			if (destination->MemoryType == MEMORY_TYPE_DEVICE) {
+				res = cudaMemcpyAsync(reinterpret_cast<void*>(destination->Address), reinterpret_cast<void*>(source->Address), safeCopySize, cudaMemcpyHostToDevice, 
+					reinterpret_cast<CUstream>(stream));
+			}
+			else {
+				res = cudaMemcpyAsync(reinterpret_cast<void*>(destination->Address), reinterpret_cast<void*>(source->Address), safeCopySize, cudaMemcpyHostToHost, 
+					reinterpret_cast<CUstream>(stream));
+			}
+			break;
+		case MEMORY_TYPE_DEVICE:
+			if (destination->MemoryType == MEMORY_TYPE_DEVICE) {
+				res = cudaMemcpyAsync(reinterpret_cast<void*>(destination->Address), reinterpret_cast<void*>(source->Address), safeCopySize, cudaMemcpyDeviceToDevice, 
+					reinterpret_cast<CUstream>(stream));
+			}
+			else {
+				res = cudaMemcpyAsync(reinterpret_cast<void*>(destination->Address), reinterpret_cast<void*>(source->Address), safeCopySize, cudaMemcpyDeviceToHost, 
+					reinterpret_cast<CUstream>(stream));
+			}
+			break;
+		case MEMORY_TYPE_MANAGED:
+			if (destination->MemoryType == MEMORY_TYPE_DEVICE) {
+				res = cudaMemcpyAsync(reinterpret_cast<void*>(destination->Address), reinterpret_cast<void*>(source->Address), safeCopySize, cudaMemcpyHostToDevice, 
+					reinterpret_cast<CUstream>(stream));
+			}
+			else {
+				res = cudaMemcpyAsync(reinterpret_cast<void*>(destination->Address), reinterpret_cast<void*>(source->Address), safeCopySize, cudaMemcpyHostToHost, 
+					reinterpret_cast<CUstream>(stream));
+			}
+			break;
+		default:
+			break;
 		}
 		CHECK_CUDA_RT_ERROR(res);
 		return NOS_RESULT_SUCCESS;
@@ -675,8 +729,8 @@ namespace nos::cudass
 		if(cudaBuffer->Address != NULL){
 			if (!cudaBuffer->CreateInfo.IsImported) {
 				if (cudaBuffer->ShareInfo.CreateHandle != NULL) {
-					driverRes = cuMemUnmap(cudaBuffer->Address, cudaBuffer->CreateInfo.AllocationSize);
-					CHECK_CUDA_DRIVER_ERROR(driverRes);
+					//driverRes = cuMemUnmap(cudaBuffer->Address, cudaBuffer->CreateInfo.AllocationSize);
+					//CHECK_CUDA_DRIVER_ERROR(driverRes);
 					driverRes = cuMemAddressFree(cudaBuffer->Address, cudaBuffer->CreateInfo.AllocationSize);
 					CHECK_CUDA_DRIVER_ERROR(driverRes);
 					driverRes = cuMemRelease(cudaBuffer->ShareInfo.CreateHandle);
