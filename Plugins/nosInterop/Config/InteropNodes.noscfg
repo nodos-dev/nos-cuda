@@ -10,7 +10,8 @@
     "node_definitions": [
       "TextureToBuffer.nosdef",
       "VulkanBufferToCUDABuffer.nosdef",
-      "TextureFormatConverter.nosdef"
+      "TextureFormatConverter.nosdef",
+      "LinearToSRGB.nosdef"
     ],
     "custom_types": [],
     "binary_path": "../Binaries/nosInterop",
@@ -29,6 +30,11 @@
         "category": "Interop",
         "class_name": "TextureFormatConverter",
         "display_name": "Texture Format Converter"
+      },
+      {
+        "category": "Interop",
+        "class_name": "LinearToSRGB",
+        "display_name": "Linear To SRGB"
       }
     ]
 }

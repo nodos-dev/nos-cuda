@@ -27,9 +27,15 @@ NOS_REGISTER_NAME(DST_TEXTURE_INT32)
 NOS_REGISTER_NAME(DST_TEXTURE_INT16)
 NOS_REGISTER_NAME(DST_TEXTURE_INT8)
 
+NOS_REGISTER_NAME(LinearToSRGB);
+NOS_REGISTER_NAME(LinearToSRGB_Shader);
+NOS_REGISTER_NAME(LinearToSRGB_Pass);
+
 nosResult RegisterTextureToBuffer(nosNodeFunctions* outFunctions);
 nosResult RegisterVulkanBufferToCUDABuffer(nosNodeFunctions* outFunctions);
 nosResult RegisterTextureFormatConverter(nosNodeFunctions* outFunctions);
+nosResult RegisterTextureFormatConverter(nosNodeFunctions* outFunctions);
+nosResult RegisterLinearToSRGB(nosNodeFunctions* outFunctions);
 
 extern nosTensorSubsystem* nosTensor = nullptr;
 extern nosCUDASubsystem* nosCUDA = nullptr;
@@ -38,7 +44,7 @@ extern "C"
 {
 	NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNodeFunctions** outFunctions)
 	{
-		*outCount = (size_t)(3);
+		*outCount = (size_t)(4);
 		if (!outFunctions)
 			return NOS_RESULT_SUCCESS;
 
@@ -55,11 +61,18 @@ extern "C"
 		if (returnRes != NOS_RESULT_SUCCESS)
 			return NOS_RESULT_FAILED;
 
-		RegisterTextureToBuffer(outFunctions[0]);
-		RegisterVulkanBufferToCUDABuffer(outFunctions[1]);
+		returnRes = RegisterTextureToBuffer(outFunctions[0]);
+		if (returnRes != NOS_RESULT_SUCCESS)
+			return NOS_RESULT_FAILED;
+		returnRes = RegisterVulkanBufferToCUDABuffer(outFunctions[1]);
+		if (returnRes != NOS_RESULT_SUCCESS)
+			return NOS_RESULT_FAILED;
 		returnRes = RegisterTextureFormatConverter(outFunctions[2]);
-		return returnRes;
-		//RegisterCUDAToVulkan(outFunctions[2]);
+		if (returnRes != NOS_RESULT_SUCCESS)
+			return NOS_RESULT_FAILED;
+		returnRes = RegisterLinearToSRGB(outFunctions[3]);
+		if (returnRes != NOS_RESULT_SUCCESS)
+			return NOS_RESULT_FAILED;
 
 		return NOS_RESULT_SUCCESS;
 	}

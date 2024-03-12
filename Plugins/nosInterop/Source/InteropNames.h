@@ -22,4 +22,7 @@ extern nos::Name NSN_DST_TEXTURE_INT32;
 extern nos::Name NSN_DST_TEXTURE_INT16;
 extern nos::Name NSN_DST_TEXTURE_INT8;
 
+extern nos::Name NSN_LinearToSRGB;
+extern nos::Name NSN_LinearToSRGB_Shader;
+extern nos::Name NSN_LinearToSRGB_Pass;
 #endif //INTEROP_NAMES_H_INCLUDED
