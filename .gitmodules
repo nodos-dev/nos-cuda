@@ -7,3 +7,6 @@
 [submodule "Subsystems/nosNVVFXDeps"]
 	path = Subsystems/nosNVVFXDeps
 	url = https://github.com/mediaz/nvvfx_sdk
+[submodule "Tools"]
+	path = Tools
+	url = https://github.com/mediaz/tools
