@@ -112,17 +112,18 @@ namespace nos::cudass
 			res = cudaFree(0); //explicit initialization pre CUDA 12.0
 		}
 		CHECK_CUDA_RT_ERROR(res);
-		
+
+#if CUDA_VERSION >= 12000
 		CUresult cuRes = cuCtxSetFlags(CU_CTX_COREDUMP_ENABLE);
 		CHECK_CUDA_DRIVER_ERROR(cuRes);
 		cuRes = cuCtxGetCurrent(reinterpret_cast<CUcontext*>(&PrimaryContext));
 		CHECK_CUDA_DRIVER_ERROR(cuRes);
-		ActiveContext = PrimaryContext;
-
 		std::string CoreDumpFile = std::string(nosEngine.Context->RootFolderPath) + "/CoreDump.txt";
 		size_t Size = CoreDumpFile.size();
-
 		cuRes = cuCoredumpSetAttribute(CU_COREDUMP_FILE, &CoreDumpFile, &Size);
+#endif		
+		ActiveContext = PrimaryContext;
+
 		CurrentDevice = device;
 		return NOS_RESULT_SUCCESS;
 	}

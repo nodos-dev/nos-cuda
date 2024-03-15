@@ -9,6 +9,7 @@
     "dependencies": []
   },
   "binary_path": "./Binaries/nosCUDASubsystem",
+  "binary_dependency_folders": [ "./External/nosCUDA/v12.2/bin" ],
   "custom_types": [
     "./Config/Types.fbs"
   ]
