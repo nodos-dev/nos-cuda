@@ -42,7 +42,7 @@ find_library(OpenCL.lib NAMES OpenCL.lib PATHS ${CMAKE_CURRENT_LIST_DIR}/Externa
 add_folder_as_subsystem_project("nosCudaSubsystem" 
 "${CMAKE_CURRENT_LIST_DIR}/External/nosCUDA/v12.2/lib/x64/cuda.lib;${CMAKE_CURRENT_LIST_DIR}/External/nosCUDA/v12.2/lib/x64/cudadevrt.lib;${CMAKE_CURRENT_LIST_DIR}/External/nosCUDA/v12.2/lib/x64/cudart.lib;${CMAKE_CURRENT_LIST_DIR}/External/nosCUDA/v12.2/lib/x64/cudart_static.lib;${CMAKE_CURRENT_LIST_DIR}/External/nosCUDA/v12.2/lib/x64/OpenCL.lib"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Include;${CMAKE_CURRENT_SOURCE_DIR}/External/CUDA/include")
+"${CMAKE_CURRENT_SOURCE_DIR}/Include;${CMAKE_CURRENT_SOURCE_DIR}/External/nosCUDA/v12.2/include")
 
 link_directories(${CMAKE_CURRENT_LIST_DIR}/External/nosCUDA/v12.2/lib/x64)
 set_target_properties(nosCudaSubsystem PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
