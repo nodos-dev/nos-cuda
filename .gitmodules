@@ -10,6 +10,6 @@
 [submodule "Tools"]
 	path = Tools
 	url = https://github.com/mediaz/tools
-[submodule "Subsystems/nosCUDASubsystem/External/nosCUDA"]
+[submodule "Subsystems/nosCUDADependencies"]
 	path = Subsystems/nosCUDASubsystem/External/nosCUDA
 	url = https://github.com/mediaz/nosCUDA.git
