@@ -10,5 +10,3 @@ add_folder_as_plugin_project("nosInterop" ""
 	"${CMAKE_CURRENT_SOURCE_DIR};${NOS_SYS_VULKAN_INCLUDE_FOLDER};${SUBSYSTEMS_SOURCE_DIR}/nosCUDASubsystem/Include;${SUBSYSTEMS_SOURCE_DIR}/nosTensorSubsystem/Include")
 
 set_target_properties(nosInterop PROPERTIES OUTPUT_NAME "nosInterop")
-
-include_directories(${CMAKE_CURRENT_LIST_DIR}/External/include)
