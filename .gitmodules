@@ -2,7 +2,7 @@
 	path = tools
 	url = https://github.com/mediaz/tools.git
 [submodule "Subsystems/nosAI/External/ONNXRT"]
-	path = Subsystems/nosAI/External/ONNXRT
+	path = Subsystems/nosONNXDependencies
 	url = https://github.com/mediaz/onnxrt-dependencies.git
 [submodule "Subsystems/nosNVVFXDeps"]
 	path = Subsystems/nosNVVFXDeps
