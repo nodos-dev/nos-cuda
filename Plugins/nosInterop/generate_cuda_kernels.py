@@ -13,15 +13,16 @@ import os
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-folder", required=True, help="Folder to search cuda kernels")
+ap.add_argument("-nvcc", required=True, help="nvcc tool")
 
-def generate_cuda_kernel_as_char_array(input_folder):
+def generate_cuda_kernel_as_char_array(input_folder, nvcc_path):
 
     print("Processing directory:", Path(input_folder)) 
     for cu_path in Path(input_folder).rglob('*.cu'):
         print("CUDA Kernel found:", cu_path)
         output_ptx_path = str(cu_path) + ".ptx"
         try:
-            subprocess.check_call(['nvcc', '-ptx', cu_path, '-o', output_ptx_path])
+            subprocess.check_call([nvcc_path, '-ptx', cu_path, '-o', output_ptx_path])
             print(f"Compiled: {cu_path} -> {output_ptx_path}")
         except subprocess.CalledProcessError as e:
             print(f"Failed to compile {cu_path}. Error: {e}")
@@ -45,7 +46,8 @@ def generate_cuda_kernel_as_char_array(input_folder):
 def main():
     args = vars(ap.parse_args())
     print(args.get("folder").strip('"'))
-    generate_cuda_kernel_as_char_array(args.get("folder").strip('"'))
+    print(args.get("nvcc").strip('"'))
+    generate_cuda_kernel_as_char_array(args.get("folder").strip('"'), args.get("nvcc").strip('"'))
     print("...Generating completed...")
 
 if __name__ == '__main__':
