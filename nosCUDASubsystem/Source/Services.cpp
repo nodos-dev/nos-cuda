@@ -95,32 +95,30 @@ namespace nos::cudass
 		}
 		
 		//We will initialize CUDA Runtime explicitly, Driver API will also be initialized implicitly
-		int cudaVersion = 0;
 		cudaError res = cudaSuccess;
-
-		res = cudaDriverGetVersion(&cudaVersion);
-		if (cudaVersion == 0) {
-			return NOS_RESULT_FAILED;
-		}
 		CHECK_CUDA_RT_ERROR(res);
+		//DRIVER API Initialization
+		CUresult cuRes;
+		
+		cuRes = cuInit(0);
+		CHECK_CUDA_DRIVER_ERROR(cuRes);
 
-		if (cudaVersion / 1000 >= 12) { //major version
-			res = cudaSetDevice(device);
-			CHECK_CUDA_RT_ERROR(res);
-		}
-		else {
-			res = cudaFree(0); //explicit initialization pre CUDA 12.0
-		}
-		CHECK_CUDA_RT_ERROR(res);
+		cuRes = cuCtxCreate(reinterpret_cast<CUcontext*>(&PrimaryContext), 0, device);
+		CHECK_CUDA_DRIVER_ERROR(cuRes);
+		
+		cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(PrimaryContext));
+		CHECK_CUDA_DRIVER_ERROR(cuRes);
 
 #if CUDA_VERSION >= 12000
-		CUresult cuRes = cuCtxSetFlags(CU_CTX_COREDUMP_ENABLE);
-		CHECK_CUDA_DRIVER_ERROR(cuRes);
-		cuRes = cuCtxGetCurrent(reinterpret_cast<CUcontext*>(&PrimaryContext));
+		res = cudaSetDevice(device);
+		CHECK_CUDA_RT_ERROR(res);		
+		cuRes = cuCtxSetFlags(CU_CTX_COREDUMP_ENABLE);
 		CHECK_CUDA_DRIVER_ERROR(cuRes);
 		std::string CoreDumpFile = std::string(nosEngine.Context->RootFolderPath) + "/CoreDump.txt";
 		size_t Size = CoreDumpFile.size();
 		cuRes = cuCoredumpSetAttribute(CU_COREDUMP_FILE, &CoreDumpFile, &Size);
+#else
+		res = cudaFree(0); //explicit initialization pre CUDA 12.0
 #endif		
 		ActiveContext = PrimaryContext;
 
@@ -470,8 +468,10 @@ namespace nos::cudass
 		CUdevice dev;
 		int supportsVMM = 0, supportsWin32 = 0;
 		
-		//cuCtxSetCurrent(reinterpret_cast<CUcontext>(PrimaryContext));
-		cuCtxGetDevice(&dev);
+		CUresult status = CUDA_SUCCESS;
+		
+		status = cuCtxGetDevice(&dev);
+		CHECK_CUDA_DRIVER_ERROR(status);
 
 		cuDeviceGetAttribute(&supportsVMM, CU_DEVICE_ATTRIBUTE_VIRTUAL_MEMORY_MANAGEMENT_SUPPORTED, dev);
 		CHECK_IS_SUPPORTED(supportsVMM, VIRTUAL_MEMORY_MANAGEMENT);
@@ -480,7 +480,6 @@ namespace nos::cudass
 			CU_DEVICE_ATTRIBUTE_HANDLE_TYPE_WIN32_HANDLE_SUPPORTED, dev);
 		CHECK_IS_SUPPORTED(supportsVMM, HANDLE_TYPE_WIN32_HANDLE);
 
-		CUresult status = CUDA_SUCCESS;
 		CUmemAllocationProp prop;
 		
 		memset(&prop, 0, sizeof(prop));
@@ -775,6 +774,14 @@ namespace nos::cudass
 			ActiveContext = PrimaryContext;
 			cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
 			CHECK_CUDA_DRIVER_ERROR(cuRes);
+		}
+		else {
+			CUcontext currentCtx = {};
+			cuCtxGetCurrent(&currentCtx);
+			if (currentCtx == NULL) {
+				ActiveContext = PrimaryContext;
+				cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
+			}
 		}
 		return NOS_RESULT_SUCCESS;
 	}
