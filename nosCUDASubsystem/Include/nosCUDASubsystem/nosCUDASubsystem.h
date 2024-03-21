@@ -380,6 +380,25 @@ typedef struct nosCUDASubsystem
 
 } nosCUDASubsystem;
 
-extern nosCUDASubsystem* nosCUDA;
+#pragma region Helper Declarations & Macros
+// Make sure these are same with nossys file.
 #define NOS_CUDA_SUBSYSTEM_NAME "nos.sys.cuda"
+#define NOS_CUDA_SUBSYSTEM_VERSION_MAJOR 1
+#define NOS_CUDA_SUBSYSTEM_VERSION_MINOR 0
+
+extern struct nosModuleContext nosCUDAModuleCtx;
+extern nosCUDASubsystem* nosCUDA;
+
+#define NOS_CUDA_INIT()                                                                                                \
+	nosModuleContext nosCUDAModuleCtx;                                                                                 \
+	nosCUDASubsystem* nosCUDA = nullptr;                                                                               \
+	inline nosResult RequestCUDASubsystem()                                                                            \
+	{                                                                                                                  \
+		return nosEngine.RequestSubsystem(nosEngine.GetName(NOS_CUDA_SUBSYSTEM_NAME, strlen(NOS_CUDA_SUBSYSTEM_NAME)), \
+										  NOS_CUDA_SUBSYSTEM_VERSION_MAJOR,                                            \
+										  NOS_CUDA_SUBSYSTEM_VERSION_MINOR,                                            \
+										  (void**)&nosCUDA,                                                            \
+										  &nosCUDAModuleCtx);                                                          \
+	}
+#pragma endregion
 #endif //NOS_CUDA_SUBSYSTEM_H_INCLUDED

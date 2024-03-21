@@ -6,6 +6,9 @@
 #include "nosTensorSubsystem/nosTensorSubsystem.h"
 
 NOS_INIT();
+NOS_VULKAN_INIT();
+NOS_CUDA_INIT();
+NOS_TENSOR_INIT();
 
 NOS_REGISTER_NAME(VulkanBufferToCUDABuffer)
 NOS_REGISTER_NAME(InputBuffer)
@@ -37,9 +40,6 @@ nosResult RegisterTextureFormatConverter(nosNodeFunctions* outFunctions);
 nosResult RegisterTextureFormatConverter(nosNodeFunctions* outFunctions);
 nosResult RegisterLinearToSRGB(nosNodeFunctions* outFunctions);
 
-extern nosTensorSubsystem* nosTensor = nullptr;
-extern nosCUDASubsystem* nosCUDA = nullptr;
-extern nosVulkanSubsystem* nosVulkan = nullptr;
 extern "C"
 {
 	NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNodeFunctions** outFunctions)
@@ -48,32 +48,14 @@ extern "C"
 		if (!outFunctions)
 			return NOS_RESULT_SUCCESS;
 
-		nosResult returnRes;
-		returnRes = nosEngine.RequestSubsystem(NOS_NAME_STATIC(NOS_TENSOR_SUBSYSTEM_NAME), 1, 0, (void**)&nosTensor);
-		if (returnRes != NOS_RESULT_SUCCESS)
-			return NOS_RESULT_FAILED;
+		NOS_RETURN_ON_FAILURE(RequestVulkanSubsystem());
+		NOS_RETURN_ON_FAILURE(RequestCUDASubsystem());
+		NOS_RETURN_ON_FAILURE(RequestTensorSubsystem());
 
-		returnRes = nosEngine.RequestSubsystem(NOS_NAME_STATIC(NOS_VULKAN_SUBSYSTEM_NAME), NOS_VULKAN_SUBSYSTEM_VERSION_MAJOR, NOS_VULKAN_SUBSYSTEM_VERSION_MINOR, (void**)&nosVulkan);
-		if (returnRes != NOS_RESULT_SUCCESS)
-			return NOS_RESULT_FAILED;
-
-		returnRes = nosEngine.RequestSubsystem(NOS_NAME_STATIC(NOS_CUDA_SUBSYSTEM_NAME), 1, 0, (void**)&nosCUDA);
-		if (returnRes != NOS_RESULT_SUCCESS)
-			return NOS_RESULT_FAILED;
-
-		returnRes = RegisterTextureToBuffer(outFunctions[0]);
-		if (returnRes != NOS_RESULT_SUCCESS)
-			return NOS_RESULT_FAILED;
-		returnRes = RegisterVulkanBufferToCUDABuffer(outFunctions[1]);
-		if (returnRes != NOS_RESULT_SUCCESS)
-			return NOS_RESULT_FAILED;
-		returnRes = RegisterTextureFormatConverter(outFunctions[2]);
-		if (returnRes != NOS_RESULT_SUCCESS)
-			return NOS_RESULT_FAILED;
-		returnRes = RegisterLinearToSRGB(outFunctions[3]);
-		if (returnRes != NOS_RESULT_SUCCESS)
-			return NOS_RESULT_FAILED;
-
+		NOS_RETURN_ON_FAILURE(RegisterTextureToBuffer(outFunctions[0]));
+		NOS_RETURN_ON_FAILURE(RegisterVulkanBufferToCUDABuffer(outFunctions[1]));
+		NOS_RETURN_ON_FAILURE(RegisterTextureFormatConverter(outFunctions[2]));
+		NOS_RETURN_ON_FAILURE(RegisterLinearToSRGB(outFunctions[3]));
 		return NOS_RESULT_SUCCESS;
 	}
 }
