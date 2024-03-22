@@ -9,6 +9,7 @@ extern nos::Name NSN_TextureToBuffer;
 extern nos::Name NSN_TextureFormatConverter;
 extern nos::Name NSN_Input;
 extern nos::Name NSN_Output;
+extern nos::Name NSN_OutputFormat;
 
 extern nos::Name NSN_FloatToIntFormat;
 extern nos::Name NSN_FloatToIntFormat_Pass;

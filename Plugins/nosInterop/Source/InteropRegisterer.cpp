@@ -18,6 +18,7 @@ NOS_REGISTER_NAME(TextureToBuffer)
 NOS_REGISTER_NAME(TextureFormatConverter)
 NOS_REGISTER_NAME(Input)
 NOS_REGISTER_NAME(Output)
+NOS_REGISTER_NAME(OutputFormat)
 NOS_REGISTER_NAME(FloatToIntFormat)
 NOS_REGISTER_NAME(FloatToIntFormat_Pass)
 
