@@ -16,6 +16,9 @@
 [submodule "Subsystems/nosONNXModels-RMBG"]
 	path = Subsystems/nosONNXModels-RMBG
 	url = https://github.com/mediaz/nosONNXModels-RMBG.git
+[submodule "Subsystems/nosONNXModels-DepthAnything"]
+	path = Subsystems/nosONNXModels-DepthAnything
+	url = https://github.com/mediaz/nosONNXModels-DepthAnything.git
 [submodule "Scripts"]
 	path = Scripts
 	url = https://github.com/mediaz/modules-scripts.git
