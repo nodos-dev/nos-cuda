@@ -15,7 +15,6 @@ struct VulkanBufferToCUDABuffer : nos::NodeContext
 	VulkanBufferToCUDABuffer(nosFbNode const* node) : NodeContext(node)
 	{
 		NodeUUID = *node->id();
-
 		for (const auto& pin : *node->pins()) {
 			if (NSN_InputBuffer.Compare(pin->name()->c_str()) == 0) {
 				InputBufferUUID = *pin->id();
