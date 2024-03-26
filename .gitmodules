@@ -13,3 +13,6 @@
 [submodule "Subsystems/nosCUDADependencies"]
 	path = Subsystems/nosCUDADependencies
 	url = https://github.com/mediaz/nosCUDA.git
+[submodule "Subsystems/nosONNXModels-RMBG"]
+	path = Subsystems/nosONNXModels-RMBG
+	url = https://github.com/mediaz/nosONNXModels-RMBG.git
