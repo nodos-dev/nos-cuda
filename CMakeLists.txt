@@ -31,7 +31,8 @@ macro(group_targets targets folder_name)
     endforeach()
 endmacro()
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/CMake/GenerateFlatbuffers.cmake)
+set(SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Scripts)
+include(${SCRIPTS_DIR}/CMake/GenerateFlatbuffers.cmake)
 
 set(NOS_SYS_VULKAN_INCLUDE_FOLDER $ENV{NOS_SYS_VULKAN_INCLUDES})
 set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Tools/Windows)
