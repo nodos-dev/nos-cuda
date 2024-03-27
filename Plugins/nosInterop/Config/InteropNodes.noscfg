@@ -5,7 +5,14 @@
             "version": "1.0.0"
         },
         "description": "Interop Nodes",
-        "display_name": "Interop"
+      "display_name": "Interop",
+      "dependencies": [
+        {
+          "name": "nos.sys.tensor",
+          "version": "1.0.0"
+        }
+      ]
+
     },
     "node_definitions": [
       "TextureToBuffer.nosdef",
