@@ -18,6 +18,8 @@ namespace nos::cudass
 		subsys->DestroyCUDAContext = DestroyCUDAContext;
 
 		subsys->Initialize = Initialize;
+		subsys->SetContext = SetContext;
+		subsys->SetCurrentContextToPrimary = SetCurrentContextToPrimary;
 		subsys->GetCurrentContext = GetCurrentContext;
 		subsys->GetCudaVersion = GetCudaVersion;
 		subsys->GetDeviceCount = GetDeviceCount;
@@ -134,9 +136,13 @@ namespace nos::cudass
 	}
 	nosResult NOSAPI_CALL SetCurrentContextToPrimary()
 	{
-		CUresult cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(PrimaryContext));
-		CHECK_CUDA_DRIVER_ERROR(cuRes);
-		ActiveContext = PrimaryContext;
+		CUcontext currentCtx = {};
+		cuCtxGetCurrent(&currentCtx);
+		if (currentCtx != PrimaryContext) {
+			ActiveContext = PrimaryContext;
+			CUresult cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
+			CHECK_CUDA_DRIVER_ERROR(cuRes);
+		}
 		return NOS_RESULT_SUCCESS;
 	}
 	nosResult NOSAPI_CALL GetCurrentContext(nosCUDAContext* cudaContext)
@@ -769,18 +775,14 @@ namespace nos::cudass
 			cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
 			CHECK_CUDA_DRIVER_ERROR(cuRes);
 		}
-		else if(ActiveContext != PrimaryContext)
-		{
-			ActiveContext = PrimaryContext;
-			cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
-			CHECK_CUDA_DRIVER_ERROR(cuRes);
-		}
 		else {
 			CUcontext currentCtx = {};
 			cuCtxGetCurrent(&currentCtx);
 			if (currentCtx == NULL) {
-				ActiveContext = PrimaryContext;
-				cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
+				cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
+			}
+			else {
+				ActiveContext = currentCtx;
 			}
 		}
 		return NOS_RESULT_SUCCESS;
