@@ -36,7 +36,7 @@ include(${SCRIPTS_DIR}/CMake/GenerateFlatbuffers.cmake)
 
 set(NOS_SYS_VULKAN_INCLUDE_FOLDER $ENV{NOS_SYS_VULKAN_INCLUDES})
 set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Tools/Windows)
-set(NVCC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems/nosCUDADependencies/v12.2/bin)
+set(NVCC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems/nosCUDADependencies/v11.8/bin)
 
 set(SUBSYSTEMS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems)
 add_subdirectory("Subsystems" "${CMAKE_CURRENT_BINARY_DIR}/Subsystems")
