@@ -2,14 +2,14 @@
     "info": {
         "id": {
             "name": "nos.Interop",
-            "version": "1.0.0"
+            "version": "2.0.0"
         },
         "description": "Interop Nodes",
       "display_name": "Interop",
       "dependencies": [
         {
           "name": "nos.sys.tensor",
-          "version": "1.0.0"
+          "version": "2.0.0"
         }
       ]
 
