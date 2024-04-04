@@ -50,7 +50,7 @@ struct TextureFormatConverter : nos::NodeContext
 					}
 					Formats.push_back(nos::sys::vulkan::EnumNameFormat(FormatEnums[i]));
 				}
-				UpdateStringList(FormatUUID, NSN_OutputFormat.AsString(), std::move(Formats));
+				nos::UpdateStringList(NSN_OutputFormat.AsString(), std::move(Formats));
 			}
 		}
 		if (!IsSavedNode) {
