@@ -742,9 +742,12 @@ namespace nos::cudass
 					driverRes = cuMemRelease(cudaBuffer->ShareInfo.CreateHandle);
 					CHECK_CUDA_DRIVER_ERROR(driverRes);
 				}
-				else {
+				else if(cudaBuffer->MemoryType == MEMORY_TYPE_MANAGED || cudaBuffer->MemoryType == MEMORY_TYPE_DEVICE){
 					rtRes = cudaFree(reinterpret_cast<void*>(cudaBuffer->Address));
 					CHECK_CUDA_RT_ERROR(rtRes);
+				}
+				else if (cudaBuffer->MemoryType == MEMORY_TYPE_HOST) {
+					free(reinterpret_cast<void*>(cudaBuffer->Address));
 				}
 			}
 			else {
