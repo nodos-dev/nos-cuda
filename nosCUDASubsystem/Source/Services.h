@@ -53,7 +53,7 @@ namespace nos::cudass
 
 	nosResult CreateCUDAContext(nosCUDAContext* cudaContext, int device, nosCUDAContextFlags flags);
 	nosResult DestroyCUDAContext(nosCUDAContext cudaContext); // Use with caution! Destroys the context
-
+	
 	nosResult Initialize(int device); //Initialize CUDA Runtime
 
 	nosResult SetContext(nosCUDAContext cudaContext); //Sets and initializes the given CUDA Context for the calling module as current for any subsequent calls from that module

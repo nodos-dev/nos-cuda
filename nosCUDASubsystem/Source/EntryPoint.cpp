@@ -9,12 +9,18 @@ namespace nos::cudass
 	extern "C"
 	{
 
-		NOSAPI_ATTR nosResult NOSAPI_CALL nosExportSubsystem(nosSubsystemFunctions* subsystemFunctions, void** exported)
+		NOSAPI_ATTR nosResult NOSAPI_CALL nosExportSubsystem(nosSubsystemFunctions* subsystemFunctions)
 		{
 			nos::cudass::Initialize(0);
-			auto subsystem = new nosCUDASubsystem;
-			nos::cudass::Bind(subsystem);
-			*exported = subsystem;
+			
+			subsystemFunctions->OnRequest = [](uint32_t minor, void** outSubsystemCtx) -> nosResult {(*outSubsystemCtx) = new nosCUDASubsystem;
+																									 nos::cudass::Bind((nosCUDASubsystem*)(*outSubsystemCtx));
+																									return NOS_RESULT_SUCCESS; };
+
+			subsystemFunctions->OnPreExecuteNode = [](nosNodeExecuteArgs* args) -> nosResult {return NOS_RESULT_SUCCESS; };
+			subsystemFunctions->OnSendEngineMetrics = [](float timeSinceLastSent) -> void {return; };
+			subsystemFunctions->OnRegisterOptions = [](nosModuleIdentifier module, nosBuffer blob)->nosResult {return NOS_RESULT_SUCCESS; };
+			subsystemFunctions->OnMessageFromEditor = [](uint64_t editorId, nosBuffer blob) -> void {return; };
 			return NOS_RESULT_SUCCESS;
 		}
 
@@ -34,7 +40,7 @@ namespace nos::cudass
 			return NOS_RESULT_SUCCESS;
 		}
 
-		NOSAPI_ATTR nosResult NOSAPI_CALL nosUnloadSubsystem(void* subsystemContext)
+		NOSAPI_ATTR nosResult NOSAPI_CALL nosUnloadSubsystem()
 		{
 			//TODO: Garbage Collect?
 			return NOS_RESULT_SUCCESS;
