@@ -38,6 +38,7 @@ find_library(cudart_static.lib NAMES cudart_static.lib PATHS ${CMAKE_CURRENT_LIS
 #find_library(nvrtc_static.lib NAMES nvrtc_static.lib PATHS ${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64 REQUIRED NO_DEFAULT_PATH)
 find_library(OpenCL.lib NAMES OpenCL.lib PATHS ${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64 REQUIRED NO_DEFAULT_PATH)
 
+execute_process(COMMAND python "${CMAKE_CURRENT_LIST_DIR}/generate_cuda_kernels.py" -folder="${CMAKE_CURRENT_LIST_DIR}/Source" -nvcc="${NVCC_DIR}/nvcc.exe" WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}")
 
 add_folder_as_subsystem_project("nosCudaSubsystem" 
 "${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cuda.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudadevrt.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudart.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudart_static.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/OpenCL.lib"

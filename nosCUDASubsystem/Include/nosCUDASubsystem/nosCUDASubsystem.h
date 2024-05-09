@@ -18,6 +18,8 @@ typedef void* nosCUDAExtSemaphore;
 
 typedef void* nosCUDAContext;
 
+typedef void* nosCUDAcuRandState;
+
 #ifdef _WIN32
 #define NOS_CUDA_CALLBACK __stdcall
 #else
@@ -374,6 +376,9 @@ typedef struct nosCUDASubsystem
 	nosResult(NOSAPI_CALL* ImportExternalMemoryAsCUDABuffer)(uint64_t Handle, size_t BlockSize, size_t AllocationSize, size_t Offset, nosCUDAExternalMemoryHandleType handleType, nosCUDABufferInfo* outBuffer);
 	nosResult(NOSAPI_CALL* ImportExternalSemaphore)(uint64_t handle, nosCUDAExternalSemaphoreHandleType handleType, nosCUDAExtSemaphore* extSem);
 
+	//Allocates cuRandState array, please consider using 1 cuRandState per thread
+	nosResult(NOSAPI_CALL* CreateCuRandState)(nosCUDAcuRandState* state, uint64_t count);
+	nosResult(NOSAPI_CALL* DestroyCuRandState)(nosCUDAcuRandState* state);
 	//TODO: Add texture & surface memory
 	// Texture and Surface memory may not be necessary at all because Pytorch seems like using linear cuda memory:
 	// https://pytorch.org/docs/stable/notes/cuda.html

@@ -8,6 +8,7 @@
 
 #include <cuda_runtime.h>
 #include <cuda.h>
+#include <curand_kernel.h>
 #include "Globals.h"
 
 namespace nos::cudass 
@@ -62,6 +63,8 @@ namespace nos::cudass
 		
 		subsys->ImportExternalSemaphore = ImportExternalSemaphore;
 		subsys->ImportExternalMemoryAsCUDABuffer = ImportExternalMemoryAsCUDABuffer;
+		
+		subsys->CreateCuRandState = CreateCuRandState;
 	}
 	nosResult NOSAPI_CALL CreateCUDAContext(nosCUDAContext* cudaContext, int device, nosCUDAContextFlags flags)
 	{
@@ -722,6 +725,25 @@ namespace nos::cudass
 		cudaError res = cudaImportExternalSemaphore(&extSemCuda, &desc);
 		CHECK_CUDA_RT_ERROR(res);
 		(*extSem) = extSemCuda;
+		return NOS_RESULT_SUCCESS;
+	}
+
+	nosResult CreateCuRandState(nosCUDAcuRandState* state, uint64_t count)
+	{
+		curandState* internalState;
+		
+		cudaError res = cudaMalloc((void**)&internalState, count * sizeof(curandState));
+		CHECK_CUDA_RT_ERROR(res);
+
+		(*state) = internalState;
+		return NOS_RESULT_SUCCESS;
+	}
+
+	nosResult DestroyCuRandState(nosCUDAcuRandState* state)
+	{
+		cudaError res = cudaFree(reinterpret_cast<curandState*>(*state));
+		CHECK_CUDA_RT_ERROR(res);
+		(*state) = NULL;
 		return NOS_RESULT_SUCCESS;
 	}
 

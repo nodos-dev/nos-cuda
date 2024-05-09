@@ -106,6 +106,9 @@ namespace nos::cudass
 	nosResult ImportExternalMemoryAsCUDABuffer(uint64_t Handle, size_t BlockSize, size_t AllocationSize, size_t Offset, nosCUDAExternalMemoryHandleType handleType, nosCUDABufferInfo* outBuffer);
 	nosResult ImportExternalSemaphore(uint64_t handle, nosCUDAExternalSemaphoreHandleType handleType, nosCUDAExtSemaphore* extSem);
 
+	nosResult CreateCuRandState(nosCUDAcuRandState* state, uint64_t count);
+	nosResult DestroyCuRandState(nosCUDAcuRandState* state);
+
 	nosResult ContextSwitch();
 	nosResult GetCallingModuleID(uint64_t* ID);
 }
