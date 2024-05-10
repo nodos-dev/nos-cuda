@@ -730,12 +730,12 @@ namespace nos::cudass
 
 	nosResult CreateCuRandState(nosCUDAcuRandState* state, uint64_t count)
 	{
-		curandState* internalState;
+		uint64_t internalState = NULL;
 		
 		cudaError res = cudaMalloc((void**)&internalState, count * sizeof(curandState));
 		CHECK_CUDA_RT_ERROR(res);
 
-		(*state) = internalState;
+		(*state) = reinterpret_cast<void*>(internalState);
 		return NOS_RESULT_SUCCESS;
 	}
 
