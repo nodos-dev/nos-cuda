@@ -32,12 +32,19 @@ def generate_cuda_kernel_as_char_array(input_folder, nvcc_path):
         output_dir_embedded = str(ptx_file_path) + "_generated.h"
         with open(ptx_file_path, 'r') as file:
             ptx_str = file.read()
-        function_name = re.findall("entry\s+([A-Za-z_][A-Za-z0-9_]*)", ptx_str)[0]
-        embedded_str = "#ifndef "+function_name.upper() + "_INCLUDED\n"
-        embedded_str += "#define "+function_name.upper() + "_INCLUDED\n"
-        embedded_str += f"#define {function_name}_NAME " + f"\"{function_name}\"\n"
-        embedded_str += f'static const char {function_name}[] = R"({ptx_str})";\n'
-        embedded_str += "#endif //"+function_name.upper() + "_INCLUDED"
+        filename = ptx_file_path.stem
+        while '.' in os.path.basename(filename):
+            filename = os.path.splitext(filename)[0]
+        print("-------purged name : ",filename)
+        function_names = re.findall("entry\s+([A-Za-z_][A-Za-z0-9_]*)", ptx_str)
+        embedded_str = "#ifndef "+ filename.upper() + "_INCLUDED\n"
+        embedded_str += "#define "+ filename.upper() + "_INCLUDED\n"
+        
+        for function_name in function_names:
+            embedded_str += f"#define {function_name}_NAME " + f"\"{function_name}\"\n"
+        
+        embedded_str += f'static const char {filename}[] = R"({ptx_str})";\n'
+        embedded_str += "#endif //"+ filename.upper() + "_INCLUDED"
 
         with open(output_dir_embedded, 'w') as generated_file:
             generated_file.write(embedded_str)
