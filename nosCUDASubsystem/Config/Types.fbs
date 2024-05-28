@@ -46,3 +46,7 @@ struct Buffer (skip_make) {
     external_memory: ExternalMemory (native_inline, hidden_property);
     element_type: BufferElementType;
 }
+
+table CUDAStream{
+	handle: ulong;
+}
