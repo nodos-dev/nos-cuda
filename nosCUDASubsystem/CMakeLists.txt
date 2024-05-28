@@ -1,7 +1,4 @@
-add_library(nosCudaSubsystem MODULE)
-if (GENERATE_FLATBUFFERS_FILES)
-    generate_flatbuffers("${TOOLS_DIR}/flatc" "${CMAKE_CURRENT_SOURCE_DIR}/Config" "${CMAKE_CURRENT_SOURCE_DIR}/Include/nosCudaSubsystem" "${CMAKE_CURRENT_SOURCE_DIR}/__temp__" "cpp" "")
-endif()
+nos_generate_flatbuffers("${CMAKE_CURRENT_SOURCE_DIR}/Config" "${CMAKE_CURRENT_SOURCE_DIR}/Include/nosCudaSubsystem" "cpp" "" nosCUDA_generated)
 
 #find_library(cublas.lib NAMES cublas.lib PATHS ${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64 REQUIRED NO_DEFAULT_PATH)
 #find_library(cublasLt.lib NAMES cublasLt.lib PATHS ${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64 REQUIRED NO_DEFAULT_PATH)
@@ -40,8 +37,8 @@ find_library(OpenCL.lib NAMES OpenCL.lib PATHS ${CMAKE_CURRENT_LIST_DIR}/../nosC
 
 execute_process(COMMAND python "${CMAKE_CURRENT_LIST_DIR}/generate_cuda_kernels.py" -folder="${CMAKE_CURRENT_LIST_DIR}/Source" -nvcc="${NVCC_DIR}/nvcc.exe" WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}")
 
-add_folder_as_subsystem_project("nosCudaSubsystem" 
-"${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cuda.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudadevrt.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudart.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudart_static.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/OpenCL.lib"
+nos_add_subsystem("nosCudaSubsystem" 
+"nosCUDA_generated;${NOS_SUBSYSTEM_SDK_TARGET};${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cuda.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudadevrt.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudart.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/cudart_static.lib;${CMAKE_CURRENT_LIST_DIR}/../nosCUDADependencies/v11.8/lib/x64/OpenCL.lib"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Include;${CMAKE_CURRENT_SOURCE_DIR}/../nosCUDADependencies/v11.8/include")
 

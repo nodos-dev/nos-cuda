@@ -2,9 +2,6 @@
 
 cmake_minimum_required(VERSION 3.24.2)
 project("AI Plugins")
-
-include(${SCRIPTS_DIR}/CMake/Plugins.cmake)
-
 # Dependencies
 # ------------
 
@@ -35,3 +32,4 @@ add_subdirectory(nosInterop)
 add_subdirectory(nosAIModelNodes)
 add_subdirectory(nosTokenizer)
 add_subdirectory(nosAI)
+add_subdirectory(nosCUDA)

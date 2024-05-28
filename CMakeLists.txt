@@ -31,12 +31,13 @@ macro(group_targets targets folder_name)
     endforeach()
 endmacro()
 
-set(SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Scripts)
-include(${SCRIPTS_DIR}/CMake/GenerateFlatbuffers.cmake)
+nos_find_sdk("1.2.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
+nos_get_module("nos.sys.vulkan" "5.2" NOS_SYS_VULKAN_TARGET)
 
-set(NOS_SYS_VULKAN_INCLUDE_FOLDER $ENV{NOS_SYS_VULKAN_INCLUDES})
+
 set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Tools/Windows)
 set(NVCC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems/nosCUDADependencies/v11.8/bin)
+set(FLATC_EXECUTABLE ${TOOLS_DIR}/flatc)
 
 set(SUBSYSTEMS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems)
 add_subdirectory("Subsystems" "${CMAKE_CURRENT_BINARY_DIR}/Subsystems")
