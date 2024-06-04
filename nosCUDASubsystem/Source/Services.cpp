@@ -270,7 +270,8 @@ namespace nos::cudass
 	nosCUDAError QueryStream(nosCUDAStream stream)
 	{
 		CHECK_CONTEXT_SWITCH();
-		return static_cast<nosCUDAError>(cudaStreamQuery(reinterpret_cast<CUstream>(stream)));
+		cudaError error = cudaStreamQuery(reinterpret_cast<cudaStream_t>(stream));
+		return static_cast<nosCUDAError>(error);
 	}
 	nosCUDAError GetLastError()
 	{
@@ -325,6 +326,7 @@ namespace nos::cudass
 		res = cudaEventElapsedTime(elapsedTime, reinterpret_cast<cudaEvent_t>(theEvent), endEvent);
 		CHECK_CUDA_RT_ERROR(res);
 		
+		//TODO: Destroy endEvent
 		return NOS_RESULT_SUCCESS;
 	}
 	nosResult NOSAPI_CALL CopyBuffers(nosCUDABufferInfo* source, nosCUDABufferInfo* destination)
@@ -437,20 +439,23 @@ namespace nos::cudass
 		CHECK_CUDA_DRIVER_ERROR(res);
 		return NOS_RESULT_SUCCESS;
 	}
-	nosResult WaitExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem)
+	nosResult WaitExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem, uint64_t value)
 	{
 		CHECK_CONTEXT_SWITCH();
 		cudaExternalSemaphoreWaitParams params = {};
-		memset(&params, 0, sizeof(params));
+		params.flags = 0;
+		params.params.fence.value = value;
+
 		cudaError res = cudaWaitExternalSemaphoresAsync(reinterpret_cast<cudaExternalSemaphore_t*>(&extSem), &params, 1, reinterpret_cast<cudaStream_t>(stream));
 		CHECK_CUDA_RT_ERROR(res);
 		return NOS_RESULT_SUCCESS;
 	}
-	nosResult SignalExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem)
+	nosResult SignalExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem, uint64_t value)
 	{
 		CHECK_CONTEXT_SWITCH();
 		cudaExternalSemaphoreSignalParams params = {};
-		memset(&params, 0, sizeof(params));
+		params.flags = 0;
+		params.params.fence.value = value;
 		cudaError res = cudaSignalExternalSemaphoresAsync(reinterpret_cast<cudaExternalSemaphore_t*>(&extSem), &params, 1, reinterpret_cast<cudaStream_t>(stream));
 		CHECK_CUDA_RT_ERROR(res);
 		return NOS_RESULT_SUCCESS;
@@ -464,6 +469,7 @@ namespace nos::cudass
 		cudaBuffer->Address = addr;
 		cudaBuffer->ShareInfo.ShareableHandle = NULL;
 		cudaBuffer->ShareInfo.CreateHandle = NULL;
+		cudaBuffer->ShareInfo.ReferenceCount = 0;
 		cudaBuffer->MemoryType = MEMORY_TYPE_DEVICE;
 		cudaBuffer->CreateInfo.BlockSize = size;
 		cudaBuffer->CreateInfo.AllocationSize = size;
@@ -533,6 +539,7 @@ namespace nos::cudass
 		cudaBuffer->CreateInfo.AllocationSize = size;
 		cudaBuffer->ShareInfo.CreateHandle = allocHandle;
 		cudaBuffer->ShareInfo.ShareableHandle = shareableHandle;
+		cudaBuffer->ShareInfo.ReferenceCount = 1;
 		cudaBuffer->Address = address;
 		cudaBuffer->MemoryType = MEMORY_TYPE_DEVICE;
 		ResManager.Add(address, *cudaBuffer);
@@ -548,6 +555,7 @@ namespace nos::cudass
 		cudaBuffer->Address = addr;
 		cudaBuffer->ShareInfo.ShareableHandle = NULL;
 		cudaBuffer->ShareInfo.CreateHandle = NULL;
+		cudaBuffer->ShareInfo.ReferenceCount = 0;
 		cudaBuffer->MemoryType = MEMORY_TYPE_MANAGED;
 		ResManager.Add(addr, *cudaBuffer);
 
@@ -562,6 +570,7 @@ namespace nos::cudass
 		cudaBuffer->Address = addr;
 		cudaBuffer->ShareInfo.ShareableHandle = NULL;
 		cudaBuffer->ShareInfo.CreateHandle = NULL;
+		cudaBuffer->ShareInfo.ReferenceCount = 0;
 		cudaBuffer->MemoryType = MEMORY_TYPE_HOST;
 		ResManager.Add(addr, *cudaBuffer);
 
@@ -572,6 +581,7 @@ namespace nos::cudass
 		destination->Address = reinterpret_cast<uint64_t>(source);
 		destination->CreateInfo.AllocationSize = size;
 		destination->ShareInfo.CreateHandle = NULL;
+		destination->ShareInfo.ReferenceCount = 0;
 		destination->ShareInfo.ShareableHandle = NULL;
 		destination->MemoryType = type;
 		ResManager.Add(destination->Address, *destination);
@@ -585,6 +595,7 @@ namespace nos::cudass
 		cudaBuffer->Address = reinterpret_cast<uint64_t>(data);
 		cudaBuffer->ShareInfo.ShareableHandle = NULL;
 		cudaBuffer->ShareInfo.CreateHandle = NULL;
+		cudaBuffer->ShareInfo.ReferenceCount = 0;
 		cudaBuffer->MemoryType = MEMORY_TYPE_HOST;
 		cudaBuffer->CreateInfo.AllocationSize = size;
 		cudaBuffer->CreateInfo.BlockSize = size;
@@ -666,6 +677,7 @@ namespace nos::cudass
 		outBuffer->CreateInfo.ImportedExternalHandle = Handle;
 		outBuffer->ShareInfo.CreateHandle = NULL;
 		outBuffer->ShareInfo.ShareableHandle = NULL;
+		outBuffer->ShareInfo.ReferenceCount = 0;
 		outBuffer->MemoryType = MEMORY_TYPE_DEVICE;
 		ResManager.Add(outBuffer->Address, *outBuffer);
 		return NOS_RESULT_SUCCESS;
@@ -747,21 +759,29 @@ namespace nos::cudass
 		return NOS_RESULT_SUCCESS;
 	}
 
+	nosResult GetStreamID(nosCUDAStream stream, uint64_t* id)
+	{
+		return NOS_RESULT_SUCCESS;
+	}
+
 	nosResult NOSAPI_CALL DestroyBuffer(nosCUDABufferInfo* cudaBuffer)
 	{
 		CHECK_CONTEXT_SWITCH();
 
 		CHECK_VALID_ARGUMENT(cudaBuffer);
+		
+		cudaDeviceSynchronize();
+
 		CUresult driverRes = CUDA_SUCCESS;
 		cudaError rtRes = cudaSuccess;
 		if(cudaBuffer->Address != NULL){
 			if (!cudaBuffer->CreateInfo.IsImported) {
 				if (cudaBuffer->ShareInfo.CreateHandle != NULL) {
-					//driverRes = cuMemUnmap(cudaBuffer->Address, cudaBuffer->CreateInfo.AllocationSize);
-					//CHECK_CUDA_DRIVER_ERROR(driverRes);
-					driverRes = cuMemAddressFree(cudaBuffer->Address, cudaBuffer->CreateInfo.AllocationSize);
+					driverRes = cuMemUnmap(cudaBuffer->Address, cudaBuffer->CreateInfo.BlockSize);
 					CHECK_CUDA_DRIVER_ERROR(driverRes);
 					driverRes = cuMemRelease(cudaBuffer->ShareInfo.CreateHandle);
+					CHECK_CUDA_DRIVER_ERROR(driverRes);
+					driverRes = cuMemAddressFree(cudaBuffer->Address, cudaBuffer->CreateInfo.BlockSize);
 					CHECK_CUDA_DRIVER_ERROR(driverRes);
 				}
 				else if(cudaBuffer->MemoryType == MEMORY_TYPE_MANAGED || cudaBuffer->MemoryType == MEMORY_TYPE_DEVICE){
@@ -782,6 +802,8 @@ namespace nos::cudass
 		}
 		
 		memset(cudaBuffer, 0, sizeof(nosCUDABufferInfo));//Let the users know
+
+		cudaDeviceSynchronize();
 
 		return NOS_RESULT_SUCCESS;
 	}

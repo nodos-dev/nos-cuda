@@ -268,6 +268,7 @@ typedef struct nosCUDABufferCreateInfo {
 typedef struct nosCUDABufferShareInfo {
 	uint64_t ShareableHandle;
 	uint64_t CreateHandle; //Only should be used in cuMemRelease(CreateHandle) 
+	uint64_t ReferenceCount;
 }nosCUDABufferShareInfo;
 
 typedef struct nosCUDABufferInfo {
@@ -357,8 +358,8 @@ typedef struct nosCUDASubsystem
 	nosResult(NOSAPI_CALL* GetCUDAEventElapsedTime)(nosCUDAStream stream, nosCUDAEvent theEvent, float* elapsedTime); //
 	nosResult(NOSAPI_CALL* AddCallback)(nosCUDAStream stream, nosCUDACallbackFunction callback, void* callbackData);
 
-	nosResult(NOSAPI_CALL* WaitExternalSemaphore)(nosCUDAStream stream, nosCUDAExtSemaphore extSem);
-	nosResult(NOSAPI_CALL* SignalExternalSemaphore)(nosCUDAStream stream, nosCUDAExtSemaphore extSem);
+	nosResult(NOSAPI_CALL* WaitExternalSemaphore)(nosCUDAStream stream, nosCUDAExtSemaphore extSem, uint64_t value);
+	nosResult(NOSAPI_CALL* SignalExternalSemaphore)(nosCUDAStream stream, nosCUDAExtSemaphore extSem, uint64_t value);
 
 	nosResult(NOSAPI_CALL* CreateBufferOnCUDA)(nosCUDABufferInfo* cudaBuffer, uint64_t size); //CUDA Memory, can be used in kernels etc.
 	nosResult(NOSAPI_CALL* CreateShareableBufferOnCUDA)(nosCUDABufferInfo* cudaBuffer, uint64_t size); //Exportable CUDA memory
@@ -379,6 +380,8 @@ typedef struct nosCUDASubsystem
 	//Allocates cuRandState array, please consider using 1 cuRandState per thread
 	nosResult(NOSAPI_CALL* CreateCuRandState)(nosCUDAcuRandState* state, uint64_t count);
 	nosResult(NOSAPI_CALL* DestroyCuRandState)(nosCUDAcuRandState* state);
+
+	nosResult(NOSAPI_CALL* GetStreamID)(nosCUDAStream stream, uint64_t* id);
 	//TODO: Add texture & surface memory
 	// Texture and Surface memory may not be necessary at all because Pytorch seems like using linear cuda memory:
 	// https://pytorch.org/docs/stable/notes/cuda.html

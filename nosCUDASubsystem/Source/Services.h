@@ -90,8 +90,8 @@ namespace nos::cudass
 	nosResult CopyBuffers(nosCUDABufferInfo* source, nosCUDABufferInfo* destination);
 	nosResult CopyBuffersAsync(nosCUDAStream stream, nosCUDABufferInfo* source, nosCUDABufferInfo* destination);
 	nosResult AddCallback(nosCUDAStream stream, nosCUDACallbackFunction callback, void* callbackData);
-	nosResult WaitExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem);
-	nosResult SignalExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem);
+	nosResult WaitExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem, uint64_t value);
+	nosResult SignalExternalSemaphore(nosCUDAStream stream, nosCUDAExtSemaphore extSem, uint64_t value);
 
 	nosResult CreateBufferOnCUDA(nosCUDABufferInfo* cudaBuffer, uint64_t size);
 	nosResult CreateShareableBufferOnCUDA(nosCUDABufferInfo* cudaBuffer, uint64_t size); //Exportable
@@ -108,6 +108,7 @@ namespace nos::cudass
 
 	nosResult CreateCuRandState(nosCUDAcuRandState* state, uint64_t count);
 	nosResult DestroyCuRandState(nosCUDAcuRandState* state);
+	nosResult GetStreamID(nosCUDAStream stream, uint64_t* id);
 
 	nosResult ContextSwitch();
 	nosResult GetCallingModuleID(uint64_t* ID);
