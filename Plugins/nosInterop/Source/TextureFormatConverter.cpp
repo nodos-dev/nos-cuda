@@ -153,7 +153,7 @@ struct TextureFormatConverter : nos::NodeContext
 				nosVulkan->Begin("Texture Format Conversion:Float to Int", &cmdRunPass);
 				nosRunComputePassParams pass = {};
 				nosGPUEvent eventHandle = {};
-				nosCmdEndParams endParams = { .ForceSubmit = true, .OutGPUEventHandle = &eventHandle };
+				nosCmdEndParams endParams = {};
 				pass.Key = NSN_FloatToIntFormat_Pass;
 				pass.DispatchSize = nosVec2u(InputTexture.Info.Texture.Width / 16, InputTexture.Info.Texture.Height / 16);
 				pass.Bindings = inputs.data();
@@ -161,17 +161,17 @@ struct TextureFormatConverter : nos::NodeContext
 				pass.Benchmark = 0;
 				nosVulkan->RunComputePass(cmdRunPass, &pass);
 				nosVulkan->End(cmdRunPass, &endParams);
-				nosVulkan->WaitGpuEvent(&eventHandle, UINT64_MAX);
+				//nosVulkan->WaitGpuEvent(&eventHandle, UINT64_MAX);
 			}
 		}
 		else {
 			nosCmd cmd = {};
 			nosGPUEvent waitEvent = {};
-			nosCmdEndParams endParams = { .ForceSubmit = true, .OutGPUEventHandle = &waitEvent };
+			nosCmdEndParams endParams = {};
 			nosVulkan->Begin("TexToTex", &cmd);
 			nosVulkan->Copy(cmd, &InputTexture, &Out, nullptr);
 			nosVulkan->End(cmd, &endParams);
-			nosVulkan->WaitGpuEvent(&waitEvent, UINT64_MAX);
+			//nosVulkan->WaitGpuEvent(&waitEvent, UINT64_MAX);
 		}
 
 
