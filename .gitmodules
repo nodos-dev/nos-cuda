@@ -19,9 +19,6 @@
 [submodule "Subsystems/nosONNXModels-DepthAnything"]
 	path = Subsystems/nosONNXModels-DepthAnything
 	url = https://github.com/mediaz/nosONNXModels-DepthAnything.git
-[submodule "Scripts"]
-	path = Scripts
-	url = https://github.com/mediaz/modules-scripts.git
 [submodule "Subsystems/nosTensorRTDependencies"]
 	path = Subsystems/nosTensorRTDependencies
 	url = https://github.com/mediaz/nosTensorRT.git
