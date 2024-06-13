@@ -6,6 +6,7 @@ attribute "skip_break";
 attribute "skip_delay";
 attribute "hidden_property";
 attribute "units";
+attribute "transient";
 
 struct ExternalMemory {
     handle_type: uint;

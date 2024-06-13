@@ -107,13 +107,6 @@ namespace nos::cudass
 		
 		cuRes = cuInit(0);
 		CHECK_CUDA_DRIVER_ERROR(cuRes);
-
-		cuRes = cuCtxCreate(reinterpret_cast<CUcontext*>(&PrimaryContext), 0, device);
-		CHECK_CUDA_DRIVER_ERROR(cuRes);
-		
-		cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(PrimaryContext));
-		CHECK_CUDA_DRIVER_ERROR(cuRes);
-
 #if CUDA_VERSION >= 12000
 		res = cudaSetDevice(device);
 		CHECK_CUDA_RT_ERROR(res);		
@@ -125,6 +118,15 @@ namespace nos::cudass
 #else
 		res = cudaFree(0); //explicit initialization pre CUDA 12.0
 #endif		
+
+		/*cuRes = cuCtxCreate(reinterpret_cast<CUcontext*>(&PrimaryContext), 0, device);
+		CHECK_CUDA_DRIVER_ERROR(cuRes);
+		
+		cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(PrimaryContext));
+		CHECK_CUDA_DRIVER_ERROR(cuRes);*/
+		CUcontext tempPrimary = {};
+		cuRes = cuCtxGetCurrent(&tempPrimary);
+		PrimaryContext = tempPrimary;
 		ActiveContext = PrimaryContext;
 
 		CurrentDevice = device;
@@ -188,6 +190,7 @@ namespace nos::cudass
 		cudaError res = cudaStreamCreate(&cudaStream);
 		CHECK_CUDA_RT_ERROR(res);
 		(*stream) = cudaStream;
+		StreamManager.Add(reinterpret_cast<uint64_t>(cudaStream), cudaStream);
 		return NOS_RESULT_SUCCESS;
 	}
 	nosResult NOSAPI_CALL DestroyStream(nosCUDAStream stream)
@@ -261,7 +264,7 @@ namespace nos::cudass
 		return AddCallback(stream, callback, callbackData);
 	}
 	nosResult NOSAPI_CALL WaitStream(nosCUDAStream stream)
-	{
+	{ 
 		CHECK_CONTEXT_SWITCH();
 		cudaError res = cudaStreamSynchronize(reinterpret_cast<cudaStream_t>(stream));
 		CHECK_CUDA_RT_ERROR(res);
@@ -270,6 +273,10 @@ namespace nos::cudass
 	nosCUDAError QueryStream(nosCUDAStream stream)
 	{
 		CHECK_CONTEXT_SWITCH();
+		//First check if the stream is valid
+		nosCUDAStream res = StreamManager.Get(reinterpret_cast<uint64_t>(stream));
+		if (res == nullptr) return NOS_CUDA_ERROR_INVALID_VALUE;
+
 		cudaError error = cudaStreamQuery(reinterpret_cast<cudaStream_t>(stream));
 		return static_cast<nosCUDAError>(error);
 	}
@@ -824,7 +831,7 @@ namespace nos::cudass
 		}
 		else {
 			CUcontext currentCtx = {};
-			cuCtxGetCurrent(&currentCtx);
+			cuRes = cuCtxGetCurrent(&currentCtx);
 			if (currentCtx == NULL) {
 				cuRes = cuCtxSetCurrent(reinterpret_cast<CUcontext>(ActiveContext));
 			}
