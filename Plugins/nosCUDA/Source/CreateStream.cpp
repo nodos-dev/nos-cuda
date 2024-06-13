@@ -22,6 +22,7 @@ struct CreateStream : nos::NodeContext
 			}
 		}
 		nosCUDA->CreateStream(&Stream);
+		nosCUDAError err = nosCUDA->QueryStream(Stream);
 		SetStreamPin(StreamPinUUID, NodeUUID, "Stream", reinterpret_cast<uint64_t>(Stream));
 	}
 
