@@ -22,3 +22,6 @@
 [submodule "Subsystems/nosTensorRTDependencies"]
 	path = Subsystems/nosTensorRTDependencies
 	url = https://github.com/mediaz/nosTensorRT.git
+[submodule "Subsystems/nosONNXModels-RT4KSR"]
+	path = Subsystems/nosONNXModels-RT4KSR
+	url = https://github.com/mediaz/nosONNXModels-RT4KSR
