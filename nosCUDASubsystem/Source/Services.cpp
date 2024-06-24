@@ -196,6 +196,7 @@ namespace nos::cudass
 	nosResult NOSAPI_CALL DestroyStream(nosCUDAStream stream)
 	{
 		CHECK_CONTEXT_SWITCH();
+		StreamManager.Remove(reinterpret_cast<uint64_t>(stream));
 		cudaError res = cudaStreamDestroy(reinterpret_cast<cudaStream_t>(stream));
 		CHECK_CUDA_RT_ERROR(res);
 		return NOS_RESULT_SUCCESS;
