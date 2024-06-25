@@ -10,3 +10,4 @@ __pycache__
 *.ptx
 *.dll
 *.trtpkg
+*.nos_trt_opt

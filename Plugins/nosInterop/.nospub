@@ -1,0 +1,10 @@
+{
+    "globs": [
+        "Config/**",
+        "*.noscfg",
+        "Include/**",
+        "Assets/**",
+        "Shaders/*.{hlsl,glsl,frag,vert,spv,comp}",
+        "Binaries/*.{dll,dylib,so}"
+    ]
+}

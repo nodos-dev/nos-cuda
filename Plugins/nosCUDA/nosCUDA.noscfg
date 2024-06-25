@@ -14,10 +14,10 @@
     ]
   },
   "node_definitions": [
-    "CreateStream.nosdef"
+    "Config/CreateStream.nosdef"
   ],
   "custom_types": [],
-  "binary_path": "../Binaries/nosCUDAPlugin",
+  "binary_path": "Binaries/nosCUDAPlugin",
   "associated_nodes": [
     {
       "category": "CUDA|Create Stream",
