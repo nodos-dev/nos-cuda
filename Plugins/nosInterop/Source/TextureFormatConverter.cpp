@@ -267,10 +267,6 @@ nosResult RegisterTextureFormatConverter(nosNodeFunctions* fn)
 	NOS_BIND_NODE_CLASS(NSN_TextureFormatConverter, TextureFormatConverter, fn);
 
 	FloatToIntFormatShader = { NSN_FloatToIntFormat, {std::begin(FloatToInt_comp_spv), std::end(FloatToInt_comp_spv)} };
-
-	std::filesystem::path path = nosEngine.Context->RootFolderPath;
-	path = path / ".." / "Source" / "FloatToInt.comp";
-	auto pathStr = std::filesystem::canonical(path).string();
 	nosShaderInfo FloatToIntShaderInfo = {
 		.Key = NSN_FloatToIntFormat,
 		.Source = {.SpirvBlob = {.Data = FloatToIntFormatShader.second.data(), .Size = FloatToIntFormatShader.second.size()}} // {.Stage = NOS_SHADER_STAGE_COMP, .GLSLSource = pathStr.c_str()},

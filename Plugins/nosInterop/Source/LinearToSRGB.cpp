@@ -93,9 +93,6 @@ nosResult RegisterLinearToSRGB(nosNodeFunctions* fn)
 
 	LinearToSRGBShader = { NSN_FloatToIntFormat, {std::begin(LinearToSRGB_frag_spv), std::end(LinearToSRGB_frag_spv)} };
 
-	std::filesystem::path path = nosEngine.Context->RootFolderPath;
-	path = path / ".." / "Source" / "LinearToSRGB.frag";
-	auto pathStr = std::filesystem::canonical(path).string();
 	nosShaderInfo LinearToSRGBShaderInfo = {
 		.Key = NSN_LinearToSRGB_Shader,
 		.Source = {.SpirvBlob = {.Data = LinearToSRGBShader.second.data(), .Size = LinearToSRGBShader.second.size()}} // {.Stage = NOS_SHADER_STAGE_COMP, .GLSLSource = pathStr.c_str()},
