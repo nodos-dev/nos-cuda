@@ -25,7 +25,6 @@ on:
         default: "false"
 
 env:
-  BUILD_NUMBER: ${{ github.run_number }}
   GH_USERNAME: "mediaz-bot"
   GH_RELEASE_REPO_URL: "https://github.com/mediaz/modules-releases"
   GH_RELEASE_REPO_ORG: "mediaz"
@@ -35,6 +34,7 @@ env:
   DIST_TARGET_DIR: "D:/Builds/Nodos-Modules"
   NOSMAN_EXECUTABLE: "C:/Tools/nosman.exe"
   RUST_BACKTRACE: 1
+  BUILD_NUMBER_STARTS_AT: 0
 
 # TODO: Support parallel runs
 concurrency:
@@ -52,17 +52,32 @@ jobs:
         shell: bash
         run: |
           git credential-manager github login --username ${{ env.GH_USERNAME }} --token ${{ env.GH_TOKEN }} --force
-          mkdir -p ./modules-${{ github.ref_name }}
+
+      - name: Offset Build Number
+        id: build_number
+        shell: bash
+        run: echo "BUILD_NUMBER=$((${{ env.BUILD_NUMBER_STARTS_AT }} + ${{ github.run_number }}))" >> $GITHUB_ENV
+      
+      - name: Show Build Info
+        shell: bash
+        run: echo "Build number is $BUILD_NUMBER"
+
+      - name: Clean Build
+        shell: pwsh
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.clean == 'true' }}
+        run: |
+          if (Test-Path -Path ./modules-${{ github.ref_name }}) { Remove-Item -Path ./modules-${{ github.ref_name }} -Recurse -Force }
 
       - name: Cleanup
         run: |
+          New-Item -ItemType Directory -Path ./modules-${{ github.ref_name }} -ErrorAction SilentlyContinue
+          cd ./modules-${{ github.ref_name }}
           if (Test-Path -Path ./workspace/Module/modules-repo) { 
             if (-not (Test-Path -Path ./modules-repo)) {
               Move-Item -Path ./workspace/Module/modules-repo -Destination .
             }
           }
         shell: pwsh
-        working-directory: ./modules-${{ github.ref_name }}
 
       - name: Setup Nodos Workspace (Latest)
         if: ${{  github.event_name != 'workflow_dispatch' || github.event.inputs.nodos_sdk_version == '' }}
@@ -108,14 +123,6 @@ jobs:
           git config user.name "${{ env.GH_USERNAME }}"
         working-directory: ./modules-${{ github.ref_name }}/modules-repo
 
-      - name: Clean Build
-        shell: pwsh
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.clean == 'true' }}
-        run: |
-          git clean -ffdx
-          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue ../Project
-        working-directory: ./modules-${{ github.ref_name }}/modules-repo
-
       - name: Move Repo Under Workspace
         run: |
           Move-Item -Path ./modules-repo -Destination ./workspace/Module/modules-repo
@@ -143,6 +150,7 @@ jobs:
         shell: pwsh
         run: |
           $LastBuildTag = git for-each-ref --sort=-v:refname --format='%(refname:short)' 'refs/tags/build.${{ github.ref_name }}-*' | Select-Object -First 1
+          echo "Last build tag is $LastBuildTag"
           ../../nosman.exe --workspace ../../ publish-batch --repo-path . --compare-with "$LastBuildTag" --vendor Nodos --version-suffix ".b${{ env.BUILD_NUMBER }}" --verbose --publisher-name "mediaz-bot" --publisher-email "bot@nodos.dev"
         working-directory: ./modules-${{ github.ref_name }}/workspace/Module/modules-repo
       
