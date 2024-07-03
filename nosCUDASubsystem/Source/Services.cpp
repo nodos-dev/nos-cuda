@@ -778,8 +778,6 @@ namespace nos::cudass
 
 		CHECK_VALID_ARGUMENT(cudaBuffer);
 		
-		cudaDeviceSynchronize();
-
 		CUresult driverRes = CUDA_SUCCESS;
 		cudaError rtRes = cudaSuccess;
 		if(cudaBuffer->Address != NULL){
@@ -810,8 +808,6 @@ namespace nos::cudass
 		}
 		
 		memset(cudaBuffer, 0, sizeof(nosCUDABufferInfo));//Let the users know
-
-		cudaDeviceSynchronize();
 
 		return NOS_RESULT_SUCCESS;
 	}
