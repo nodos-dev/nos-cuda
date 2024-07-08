@@ -1,7 +1,7 @@
 {
     "info": {
         "id": {
-            "name": "nos.Interop",
+            "name": "nos.interop",
             "version": "2.0.0"
         },
         "description": "Interop Nodes",

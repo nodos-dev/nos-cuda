@@ -6,7 +6,7 @@
 #define CHECK_CUDA_RT_ERROR(cudaErr)	\
 	do{							\
 		if (cudaErr != cudaSuccess) {	\
-			nosEngine.LogE("CUDA RT failed with error: %s from line: %d", cudaGetErrorString(cudaErr), __LINE__);	\
+			nosEngine.LogE("CUDA RT failed with error: %s from line: [%s:%d]", cudaGetErrorString(cudaErr), __FILE__, __LINE__);	\
 			return NOS_RESULT_FAILED; \
 		}						\
 	}while(0)					\
@@ -17,10 +17,10 @@
 			const char* errorStr = nullptr; \
 			cuGetErrorString(cuRes, &errorStr); \
 			if(errorStr != nullptr){\
-				nosEngine.LogE("CUDA Driver failed with error: %s", errorStr);	\
+				nosEngine.LogE("CUDA Driver failed with error: %s [%s:%d]", errorStr, __FILE__, __LINE__);	\
 			}\
 			else{\
-				nosEngine.LogE("CUDA Driver failed with unknown error.");\
+				nosEngine.LogE("CUDA Driver failed with unknown error. [%s:%d]", __FILE__, __LINE__);\
 			}\
 			return NOS_RESULT_FAILED; \
 		}						\
