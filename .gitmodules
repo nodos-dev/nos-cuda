@@ -25,3 +25,6 @@
 [submodule "Subsystems/nosONNXModels-RT4KSR"]
 	path = Subsystems/nosONNXModels-RT4KSR
 	url = https://github.com/mediaz/nosONNXModels-RT4KSR
+[submodule "Subsystems/nosONNXModels-DepthAnything-v2"]
+	path = Subsystems/nosONNXModels-DepthAnything-v2
+	url = https://github.com/mediaz/nosONNXModels-DepthAnything-v2.git
