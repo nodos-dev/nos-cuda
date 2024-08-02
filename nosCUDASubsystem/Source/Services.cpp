@@ -383,7 +383,7 @@ namespace nos::cudass
 		}
 		CHECK_CUDA_RT_ERROR(res);
 		return NOS_RESULT_SUCCESS;
-	}
+  	}
 	nosResult CopyBuffersAsync(nosCUDAStream stream, nosCUDABufferInfo* source, nosCUDABufferInfo* destination)
 	{
 		CHECK_CONTEXT_SWITCH();
