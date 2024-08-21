@@ -4,11 +4,18 @@
 #include <AppService_generated.h>
 #include <AppEvents_generated.h>
 #include "nosTensorSubsystem/nosTensorSubsystem.h"
+#include "Nodos/PluginHelpers.hpp"
 
 NOS_INIT();
 NOS_VULKAN_INIT();
 NOS_CUDA_INIT();
 NOS_TENSOR_INIT();
+
+NOS_BEGIN_IMPORT_DEPS()
+	NOS_VULKAN_IMPORT()
+	NOS_CUDA_IMPORT()
+	NOS_TENSOR_IMPORT()
+NOS_END_IMPORT_DEPS()
 
 NOS_REGISTER_NAME(VulkanBufferToCUDABuffer)
 NOS_REGISTER_NAME(InputBuffer)
@@ -41,17 +48,13 @@ nosResult RegisterTextureFormatConverter(nosNodeFunctions* outFunctions);
 nosResult RegisterTextureFormatConverter(nosNodeFunctions* outFunctions);
 nosResult RegisterLinearToSRGB(nosNodeFunctions* outFunctions);
 
-extern "C"
+struct InteropPluginFunctions : nos::PluginFunctions
 {
-	NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNodeFunctions** outFunctions)
+	nosResult ExportNodeFunctions(size_t& outCount, nosNodeFunctions** outFunctions) override
 	{
-		*outCount = (size_t)(4);
+		outCount = (size_t)(4);
 		if (!outFunctions)
 			return NOS_RESULT_SUCCESS;
-
-		NOS_RETURN_ON_FAILURE(RequestVulkanSubsystem());
-		NOS_RETURN_ON_FAILURE(RequestCUDASubsystem());
-		NOS_RETURN_ON_FAILURE(RequestTensorSubsystem());
 
 		NOS_RETURN_ON_FAILURE(RegisterTextureToBuffer(outFunctions[0]));
 		NOS_RETURN_ON_FAILURE(RegisterVulkanBufferToCUDABuffer(outFunctions[1]));
@@ -59,4 +62,6 @@ extern "C"
 		NOS_RETURN_ON_FAILURE(RegisterLinearToSRGB(outFunctions[3]));
 		return NOS_RESULT_SUCCESS;
 	}
-}
+};
+
+NOS_EXPORT_PLUGIN_FUNCTIONS(InteropPluginFunctions)

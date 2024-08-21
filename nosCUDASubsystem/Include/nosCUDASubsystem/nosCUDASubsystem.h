@@ -392,21 +392,16 @@ typedef struct nosCUDASubsystem
 // Make sure these are same with nossys file.
 #define NOS_CUDA_SUBSYSTEM_NAME "nos.sys.cuda"
 #define NOS_CUDA_SUBSYSTEM_VERSION_MAJOR 2
-#define NOS_CUDA_SUBSYSTEM_VERSION_MINOR 0
+#define NOS_CUDA_SUBSYSTEM_VERSION_MINOR 1
 
-extern struct nosModuleContext nosCUDAModuleCtx;
+extern struct nosModuleInfo nosCUDAModuleInfo;
 extern nosCUDASubsystem* nosCUDA;
 
 #define NOS_CUDA_INIT()                                                                                                \
-	nosModuleContext nosCUDAModuleCtx;                                                                                 \
-	nosCUDASubsystem* nosCUDA = nullptr;                                                                               \
-	inline nosResult RequestCUDASubsystem()                                                                            \
-	{                                                                                                                  \
-		return nosEngine.RequestSubsystem(nosEngine.GetName(NOS_CUDA_SUBSYSTEM_NAME, strlen(NOS_CUDA_SUBSYSTEM_NAME)), \
-										  NOS_CUDA_SUBSYSTEM_VERSION_MAJOR,                                            \
-										  NOS_CUDA_SUBSYSTEM_VERSION_MINOR,                                            \
-										  (void**)&nosCUDA,                                                            \
-										  &nosCUDAModuleCtx);                                                          \
-	}
+	nosModuleInfo nosCUDAModuleInfo;																				   \
+	nosCUDASubsystem* nosCUDA = nullptr;                                                                               
+
+#define NOS_CUDA_IMPORT() NOS_IMPORT_DEP(NOS_CUDA_SUBSYSTEM_NAME, nosCUDAModuleInfo, nosCUDA)
+
 #pragma endregion
 #endif //NOS_CUDA_SUBSYSTEM_H_INCLUDED

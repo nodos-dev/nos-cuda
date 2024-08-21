@@ -46,10 +46,10 @@ struct VulkanBufferToCUDABuffer : nos::NodeContext
 	}
 	
 
-	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
+	nosResult ExecuteNode(nosNodeExecuteParams* params) override
 	{
-		auto pinIds = nos::GetPinIds(args);
-		auto pinValues = nos::GetPinValues(args);
+		auto pinIds = nos::GetPinIds(params);
+		auto pinValues = nos::GetPinValues(params);
 		auto VulkanBuf = (nos::sys::vulkan::Buffer*)(pinValues[NSN_InputBuffer]);
 
 		UpdateOutputPin(VulkanBuf);

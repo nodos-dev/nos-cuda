@@ -31,7 +31,7 @@ __forceinline void CreateStringList(nosUUID& GenUUID, nosUUID& NodeUUID, std::st
 	nos::fb::TVisualizer vis = { .type = nos::fb::VisualizerType::COMBO_BOX, .name = name };
 	auto buf = std::vector<u8>((u8*)list.front().data(), (u8*)list.front().data() + list.front().size() + 1);
 
-	nosEngine.GenerateID(&GenUUID);
+	GenUUID = nosEngine.GenerateID();
 
 	StrListPin.push_back(nos::fb::CreatePinDirect(fbb,
 		&GenUUID,
@@ -67,7 +67,7 @@ __forceinline void CreateOrUpdateVulkanBufferPin(BufferPin bufferPin, nosUUID* N
 	
 	auto bufPin = nos::Buffer::From(buffer);
 	auto bufferPinBytes = std::vector<uint8_t>((uint8_t*)bufPin.Data(), (uint8_t*)bufPin.Data() + bufPin.Size());
-	nosEngine.GenerateID(GeneratedPinUUID);
+	*GeneratedPinUUID = nosEngine.GenerateID();
 	std::vector<flatbuffers::Offset<nos::fb::Pin>> Pins;
 	Pins.push_back(nos::fb::CreatePinDirect(fbb2,
 		GeneratedPinUUID,
@@ -100,7 +100,7 @@ __forceinline void CreateOrUpdateCUDABufferPin(BufferPin bufferPin, nosUUID* Nod
 
 	auto bufPin = nos::Buffer::From(buffer);
 	auto bufferPinBytes = std::vector<uint8_t>((uint8_t*)bufPin.Data(), (uint8_t*)bufPin.Data() + bufPin.Size());
-	nosEngine.GenerateID(GeneratedPinUUID);
+	*GeneratedPinUUID = nosEngine.GenerateID();
 	std::vector<flatbuffers::Offset<nos::fb::Pin>> Pins;
 	Pins.push_back(nos::fb::CreatePinDirect(fbb2,
 		GeneratedPinUUID,

@@ -33,7 +33,7 @@ struct LinearToSRGB : nos::NodeContext
 		}
 	}
 
-	nosResult ExecuteNode(const nosNodeExecuteArgs* args) override
+	nosResult ExecuteNode(nosNodeExecuteParams* params) override
 	{
 		std::vector<nosShaderBinding> inputs;
 		inputs.emplace_back(nos::vkss::ShaderBinding(NSN_Input, Input));

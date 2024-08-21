@@ -2,14 +2,22 @@
     "info": {
         "id": {
             "name": "nos.interop",
-            "version": "2.0.0"
+            "version": "2.1.0"
         },
         "description": "Interop Nodes",
       "display_name": "Interop",
       "dependencies": [
         {
           "name": "nos.sys.tensor",
-          "version": "2.0.0"
+          "version": "2.1.0"
+        },
+{
+          "name": "nos.sys.vulkan",
+          "version": "5.8.0"
+        },
+        {
+          "name": "nos.sys.cuda",
+          "version": "2.1.0"
         }
       ]
 

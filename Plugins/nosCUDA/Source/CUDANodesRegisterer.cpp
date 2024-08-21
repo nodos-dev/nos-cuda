@@ -1,6 +1,6 @@
 #include <Nodos/PluginAPI.h>
 #include <Builtins_generated.h>
-#include <Nodos/Helpers.hpp>
+#include <Nodos/PluginHelpers.hpp>
 #include <AppService_generated.h>
 #include <AppEvents_generated.h>
 #include "nosCUDASubsystem/nosCUDASubsystem.h"
@@ -8,20 +8,24 @@
 NOS_INIT();
 NOS_CUDA_INIT();
 
+NOS_BEGIN_IMPORT_DEPS()
+	NOS_CUDA_IMPORT()
+NOS_END_IMPORT_DEPS()
+
 void RegisterCreateStream(nosNodeFunctions* outFunctions);
 
-extern "C"
+struct CUDANodesPluginFunctions : nos::PluginFunctions
 {
-	NOSAPI_ATTR nosResult NOSAPI_CALL nosExportNodeFunctions(size_t* outCount, nosNodeFunctions** outFunctions)
+	nosResult ExportNodeFunctions(size_t& outSize, nosNodeFunctions** outList) override
 	{
-		*outCount = (size_t)(1);
-		if (!outFunctions)
+		outSize = 1;
+		if (!outList)
 			return NOS_RESULT_SUCCESS;
 
-		NOS_RETURN_ON_FAILURE(RequestCUDASubsystem());
-		
-		RegisterCreateStream(outFunctions[0]);
+		RegisterCreateStream(outList[0]);
 
 		return NOS_RESULT_SUCCESS;
 	}
-}
+};
+
+NOS_EXPORT_PLUGIN_FUNCTIONS(CUDANodesPluginFunctions)

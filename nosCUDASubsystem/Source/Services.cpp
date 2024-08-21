@@ -841,7 +841,7 @@ namespace nos::cudass
 
 	FORCEINLINE nosResult GetCallingModuleID(uint64_t* ID)
 	{
-		nosModuleContext moduleContext = {};
+		nosModuleInfo moduleContext = {};
 		nosResult nosRes = nosEngine.GetCallingModule(&moduleContext);
 		if (nosRes != NOS_RESULT_SUCCESS)
 			return nosRes;
