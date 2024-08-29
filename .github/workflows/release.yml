@@ -36,7 +36,7 @@ jobs:
         id: offset-build-number
         shell: bash
         run: |
-          BUILD_NUMBER=$(( ${{ github.run_number }} + 451 ))
+          BUILD_NUMBER=$(( ${{ github.run_number }} + 0 ))
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
   call-release-modules:
