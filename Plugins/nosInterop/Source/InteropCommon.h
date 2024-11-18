@@ -29,7 +29,7 @@ __forceinline void CreateStringList(nosUUID& GenUUID, nosUUID& NodeUUID, std::st
 	flatbuffers::FlatBufferBuilder fbb2;
 	std::vector<flatbuffers::Offset<nos::fb::Pin>> StrListPin;
 	nos::fb::TVisualizer vis = { .type = nos::fb::VisualizerType::COMBO_BOX, .name = name };
-	auto buf = std::vector<u8>((u8*)list.front().data(), (u8*)list.front().data() + list.front().size() + 1);
+	auto buf = std::vector<uint8_t>((uint8_t*)list.front().data(), (uint8_t*)list.front().data() + list.front().size() + 1);
 
 	GenUUID = nosEngine.GenerateID();
 
