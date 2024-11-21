@@ -35,7 +35,7 @@ struct TextureFormatConverter : nos::NodeContext
 			else if (NSN_OutputFormat.Compare(pin->name()->c_str()) == 0) {
 				IsSavedNode = true;
 				FormatUUID = *pin->id();
-				SetPinOrphanState(FormatUUID, false);
+				SetPinOrphanState(FormatUUID, nos::fb::PinOrphanStateType::ACTIVE);
 				const char* SelectedFormat = (const char*)pin->data()->data();
 				auto FormatEnums = nos::sys::vulkan::EnumValuesFormat();
 				std::vector<std::string> Formats = {};
@@ -249,16 +249,6 @@ struct TextureFormatConverter : nos::NodeContext
 		auto TextureTable = nos::sys::vulkan::Texture::Pack(fbb, &TTexture);
 		fbb.Finish(TextureTable);
 		nosEngine.SetPinValueDirect(OutputUUID, { .Data = fbb.GetBufferPointer(), .Size = fbb.GetSize() });
-	}
-
-	void SetPinOrphanState(nos::fb::UUID uuid, bool isOrphan) {
-		flatbuffers::FlatBufferBuilder fbb;
-		std::vector<::flatbuffers::Offset<nos::PartialPinUpdate>> toUpdate;
-		toUpdate.push_back(nos::CreatePartialPinUpdateDirect(fbb, &uuid, 0, nos::fb::CreateOrphanStateDirect(fbb, isOrphan)));
-
-		flatbuffers::FlatBufferBuilder fbb2;
-		HandleEvent(
-			CreateAppEvent(fbb, nos::CreatePartialNodeUpdateDirect(fbb, &NodeUUID, nos::ClearFlags::NONE, 0, 0, 0, 0, 0, 0, 0, &toUpdate)));
 	}
 };
 
