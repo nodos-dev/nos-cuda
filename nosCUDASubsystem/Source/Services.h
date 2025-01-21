@@ -111,5 +111,4 @@ namespace nos::cudass
 	nosResult GetStreamID(nosCUDAStream stream, uint64_t* id);
 
 	nosResult ContextSwitch();
-	nosResult GetCallingModuleID(uint64_t* ID);
 }

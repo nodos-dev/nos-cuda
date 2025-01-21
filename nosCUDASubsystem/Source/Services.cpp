@@ -5,7 +5,6 @@
 #include "CUDASubsysCommon.h"
 // SDK
 #include <Nodos/SubsystemAPI.h>
-
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <curand_kernel.h>
@@ -13,6 +12,7 @@
 
 namespace nos::cudass 
 {
+	nosResult GetCallingModuleID(nos::Name* ID);
 	void Bind(nosCUDASubsystem* subsys) {
 
 		subsys->CreateCUDAContext = CreateCUDAContext;
@@ -68,7 +68,7 @@ namespace nos::cudass
 	}
 	nosResult NOSAPI_CALL CreateCUDAContext(nosCUDAContext* cudaContext, int device, nosCUDAContextFlags flags)
 	{
-		uint64_t ID = NULL;
+		nos::Name ID{};
 		nosResult nosRes = GetCallingModuleID(&ID);
 		if (nosRes != NOS_RESULT_SUCCESS)
 			return nosRes;
@@ -170,6 +170,7 @@ namespace nos::cudass
 		cudaError res = cudaSuccess;
 		res = cudaGetDeviceCount(deviceCount);
 		CHECK_CUDA_RT_ERROR(res);
+		return NOS_RESULT_SUCCESS;
 	}
 	nosResult NOSAPI_CALL GetDeviceProperties(int device, nosCUDADeviceProperties* deviceProperties)
 	{
@@ -814,7 +815,7 @@ namespace nos::cudass
 
 	FORCEINLINE nosResult ContextSwitch()
 	{
-		uint64_t ID = NULL;
+		nos::Name ID{};
 		nosResult nosRes = GetCallingModuleID(&ID);
 		if (nosRes != NOS_RESULT_SUCCESS)
 			return nosRes;
@@ -839,7 +840,7 @@ namespace nos::cudass
 		return NOS_RESULT_SUCCESS;
 	}
 
-	FORCEINLINE nosResult GetCallingModuleID(uint64_t* ID)
+	FORCEINLINE nosResult GetCallingModuleID(nos::Name* ID)
 	{
 		nosModuleInfo moduleContext = {};
 		nosResult nosRes = nosEngine.GetCallingModule(&moduleContext);
