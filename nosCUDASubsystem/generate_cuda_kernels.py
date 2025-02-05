@@ -22,7 +22,7 @@ def generate_cuda_kernel_as_char_array(input_folder, nvcc_path):
         print("CUDA Kernel found:", cu_path)
         output_ptx_path = str(cu_path) + ".ptx"
         try:
-            subprocess.check_call([nvcc_path, '-ptx', cu_path, '-o', output_ptx_path])
+            subprocess.check_call([nvcc_path, '-ptx', cu_path, '-o', output_ptx_path, '-allow-unsupported-compiler'])
             print(f"Compiled: {cu_path} -> {output_ptx_path}")
         except subprocess.CalledProcessError as e:
             print(f"Failed to compile {cu_path}. Error: {e}")
