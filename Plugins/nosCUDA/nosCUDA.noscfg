@@ -2,14 +2,14 @@
   "info": {
     "id": {
       "name": "nos.cuda",
-      "version": "1.1.0"
+      "version": "1.2.0"
     },
     "description": "Nodos CUDA Nodes",
     "display_name": "nosCUDA",
     "dependencies": [
       {
         "name": "nos.sys.cuda",
-        "version": "2.1.0"
+        "version": "2.2.0"
       }
     ]
   },
@@ -17,12 +17,5 @@
     "Config/CreateStream.nosdef"
   ],
   "custom_types": [],
-  "binary_path": "Binaries/nosCUDAPlugin",
-  "associated_nodes": [
-    {
-      "category": "CUDA|Create Stream",
-      "class_name": "CreateStream",
-      "display_name": "Create CUDA Stream"
-    }
-  ]
+  "binary_path": "Binaries/nosCUDAPlugin"
 }

@@ -10,10 +10,9 @@ struct LinearToSRGB : nos::NodeContext
 {
 	BufferPin BufferPinProxy = {};
 	nosResourceShareInfo Input = {}, Output = {};
-	nosUUID NodeUUID = {}, InputUUID = {}, OutputUUID = {};
+	nos::uuid InputUUID = {}, OutputUUID = {};
 	LinearToSRGB(nosFbNode const* node) : NodeContext(node)
 	{
-		NodeUUID = *node->id();
 
 		for (const auto& pin : *node->pins()) {
 			const char* currentPinName = pin->name()->c_str();
@@ -25,7 +24,7 @@ struct LinearToSRGB : nos::NodeContext
 			}
 		}
 	}
-	void OnPinValueChanged(nos::Name pinName, nosUUID pinId, nosBuffer value) override 
+	void OnPinValueChanged(nos::Name pinName, const nos::uuid& pinId, nosBuffer value) override 
 	{
 		if (pinId == InputUUID) {
 			nosResourceShareInfo in = nos::vkss::DeserializeTextureInfo(value.Data);
@@ -46,8 +45,7 @@ struct LinearToSRGB : nos::NodeContext
 			.Wireframe = false,
 		};
 
-		nosCmd cmdRunPass;
-		nosVulkan->Begin("Linear to SRGB Pass", &cmdRunPass);
+		nosCmd cmdRunPass = nos::vkss::BeginCmd(NOS_NAME("Linear to SRGB Pass"), NodeId);
 		nosGPUEvent eventHandle = {};
 		nosCmdEndParams endParams = { .ForceSubmit = true, .OutGPUEventHandle = &eventHandle };
 		nosVulkan->RunPass(cmdRunPass, &pass);
@@ -71,7 +69,7 @@ struct LinearToSRGB : nos::NodeContext
 		}
 		Output = in;
 		Output.Memory = nosMemoryInfo{};
-		nosVulkan->CreateResource(&Output);
+		nosVulkan->CreateResource(&Output, "LinearToSRGB Output");
 
 		auto TTexture = nos::vkss::ConvertTextureInfo(Output);
 		flatbuffers::FlatBufferBuilder fbb;
@@ -94,8 +92,9 @@ nosResult RegisterLinearToSRGB(nosNodeFunctions* fn)
 	LinearToSRGBShader = { NSN_FloatToIntFormat, {std::begin(LinearToSRGB_frag_spv), std::end(LinearToSRGB_frag_spv)} };
 
 	nosShaderInfo LinearToSRGBShaderInfo = {
-		.Key = NSN_LinearToSRGB_Shader,
-		.Source = {.SpirvBlob = {.Data = LinearToSRGBShader.second.data(), .Size = LinearToSRGBShader.second.size()}} // {.Stage = NOS_SHADER_STAGE_COMP, .GLSLSource = pathStr.c_str()},
+		.ShaderName = NSN_LinearToSRGB_Shader,
+		.Source = {.SpirvBlob = {.Data = LinearToSRGBShader.second.data(), .Size = LinearToSRGBShader.second.size()}}, // {.Stage = NOS_SHADER_STAGE_COMP, .GLSLSource = pathStr.c_str()},
+		.AssociatedNodeClassName = NSN_LinearToSRGB,
 	};
 	nosResult ret = nosVulkan->RegisterShaders(1, &LinearToSRGBShaderInfo);
 	if (NOS_RESULT_SUCCESS != ret)

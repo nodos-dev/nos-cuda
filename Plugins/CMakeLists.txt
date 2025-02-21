@@ -26,6 +26,7 @@ if (NOT ${COMPILE_SHADERS_RESULT} EQUAL "0")
     message(FATAL_ERROR "Failed to compile shaders. Process returned ${COMPILE_SHADERS_RESULT}.")
 endif()
 
+add_subdirectory(nosAIPluginsCommon)
 add_subdirectory(nosTensors)
 add_subdirectory(nosONNX)
 add_subdirectory(nosInterop)

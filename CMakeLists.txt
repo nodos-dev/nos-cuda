@@ -31,8 +31,8 @@ macro(group_targets targets folder_name)
     endforeach()
 endmacro()
 
-nos_find_sdk("1.2.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
-nos_get_module("nos.sys.vulkan" "5.25" NOS_SYS_VULKAN_TARGET)
+nos_find_sdk("1.3.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
+nos_get_module("nos.sys.vulkan" "6.0" NOS_SYS_VULKAN_TARGET)
 
 
 set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Tools/Windows)

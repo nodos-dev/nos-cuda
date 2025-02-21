@@ -2,22 +2,22 @@
     "info": {
         "id": {
             "name": "nos.interop",
-            "version": "2.1.0"
+            "version": "2.2.0"
         },
         "description": "Interop Nodes",
       "display_name": "Interop",
       "dependencies": [
         {
           "name": "nos.sys.tensor",
-          "version": "2.1.0"
+          "version": "2.2.0"
         },
 {
           "name": "nos.sys.vulkan",
-          "version": "5.8.0"
+          "version": "6.0.0"
         },
         {
           "name": "nos.sys.cuda",
-          "version": "2.1.0"
+          "version": "2.2.0"
         }
       ]
 
@@ -29,27 +29,5 @@
       "Config/LinearToSRGB.nosdef"
     ],
     "custom_types": [],
-    "binary_path": "Binaries/nosInterop",
-    "associated_nodes": [
-      {
-        "category": "Interop",
-        "class_name": "TextureToBuffer",
-        "display_name": "Vulkan Texture to Vulkan Buffer"
-      },
-      {
-        "category": "Interop",
-        "class_name": "VulkanBufferToCUDABuffer",
-        "display_name": "Vulkan Buffer to CUDA Buffer"
-      },
-      {
-        "category": "Interop",
-        "class_name": "TextureFormatConverter",
-        "display_name": "Texture Format Converter"
-      },
-      {
-        "category": "Interop",
-        "class_name": "LinearToSRGB",
-        "display_name": "Linear To SRGB"
-      }
-    ]
+    "binary_path": "Binaries/nosInterop"
 }

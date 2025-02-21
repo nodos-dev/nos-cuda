@@ -14,16 +14,14 @@ struct TextureFormatConverter : nos::NodeContext
 
 	BufferPin VulkanBufferPinProxy = {};
 	nosResourceShareInfo InputTexture = {}, OutputTexture = {};
-	nosUUID NodeUUID = {}, InputUUID = {}, OutputUUID = {}, FormatUUID = {};
+	nos::uuid InputUUID = {}, OutputUUID = {}, FormatUUID = {};
 	nos::sys::vulkan::Format OutputFormat = {};
 	nosResourceShareInfo outBuf = {};
 	nosResourceShareInfo inBuf = {};
 
 	bool IsSavedNode = false;
-	TextureFormatConverter(nosFbNode const* node) : NodeContext(node)
+	TextureFormatConverter(nosFbNodePtr node) : NodeContext(node)
 	{
-		NodeUUID = *node->id();
-
 		for (const auto& pin : *node->pins()) {
 			if (NSN_Input.Compare(pin->name()->c_str()) == 0) {
 				InputUUID = *pin->id();
@@ -59,7 +57,7 @@ struct TextureFormatConverter : nos::NodeContext
 			for (int i = 0; i < 69; i++) {
 				Formats.push_back(nos::sys::vulkan::EnumNameFormat(FormatEnums[i]));
 			}
-			CreateStringList(FormatUUID, NodeUUID, NSN_OutputFormat.AsString(), std::move(Formats));
+			CreateStringListPin(FormatUUID, NodeId, NSN_OutputFormat.AsString(), std::move(Formats));
 		}
 	}
 
@@ -67,7 +65,7 @@ struct TextureFormatConverter : nos::NodeContext
 		nosVulkan->DestroyResource(&OutputTexture);
 	}
 
-	void OnPinValueChanged(nos::Name pinName, nosUUID pinId, nosBuffer value) override
+	void OnPinValueChanged(nos::Name pinName, const nos::uuid& pinId, nosBuffer value) override
 	{
 		if (InputUUID == pinId) {
 			InputTexture = nos::vkss::DeserializeTextureInfo(value.Data);
@@ -149,8 +147,7 @@ struct TextureFormatConverter : nos::NodeContext
 				inputs.emplace_back(nos::vkss::ShaderBinding(NSN_DST_TEXTURE_INT16, Out));
 				inputs.emplace_back(nos::vkss::ShaderBinding(NSN_DST_TEXTURE_INT8, Out));
 
-				nosCmd cmdRunPass;
-				nosVulkan->Begin("Texture Format Conversion:Float to Int", &cmdRunPass);
+				nosCmd cmdRunPass = nos::vkss::BeginCmd(NOS_NAME("Texture Format Conversion:Float to Int"), NodeId);
 				nosRunComputePassParams pass = {};
 				nosGPUEvent eventHandle = {};
 				nosCmdEndParams endParams = {};
@@ -165,11 +162,10 @@ struct TextureFormatConverter : nos::NodeContext
 			}
 		}
 		else {
-			nosCmd cmd = {};
+			nosCmd cmd = nos::vkss::BeginCmd(NOS_NAME("TexToTex"), NodeId);
+			nosVulkan->Copy(cmd, &InputTexture, &Out, nullptr);
 			nosGPUEvent waitEvent = {};
 			nosCmdEndParams endParams = {};
-			nosVulkan->Begin("TexToTex", &cmd);
-			nosVulkan->Copy(cmd, &InputTexture, &Out, nullptr);
 			nosVulkan->End(cmd, &endParams);
 			//nosVulkan->WaitGpuEvent(&waitEvent, UINT64_MAX);
 		}
@@ -239,7 +235,7 @@ struct TextureFormatConverter : nos::NodeContext
 		OutputTexture.Info.Texture.Usage = InputTexture.Info.Texture.Usage;
 		OutputTexture.Info.Texture.Width = InputTexture.Info.Texture.Width;
 
-		nosVulkan->CreateResource(&OutputTexture);
+		nosVulkan->CreateResource(&OutputTexture, "TextureFormatConverter");
 		UpdateOutputPin();
 	}
 
@@ -256,10 +252,13 @@ nosResult RegisterTextureFormatConverter(nosNodeFunctions* fn)
 {
 	NOS_BIND_NODE_CLASS(NSN_TextureFormatConverter, TextureFormatConverter, fn);
 
-	FloatToIntFormatShader = { NSN_FloatToIntFormat, {std::begin(FloatToInt_comp_spv), std::end(FloatToInt_comp_spv)} };
+	FloatToIntFormatShader = {NSN_FloatToIntFormat, {std::begin(FloatToInt_comp_spv), std::end(FloatToInt_comp_spv)}};
 	nosShaderInfo FloatToIntShaderInfo = {
-		.Key = NSN_FloatToIntFormat,
-		.Source = {.SpirvBlob = {.Data = FloatToIntFormatShader.second.data(), .Size = FloatToIntFormatShader.second.size()}} // {.Stage = NOS_SHADER_STAGE_COMP, .GLSLSource = pathStr.c_str()},
+		.ShaderName = NSN_FloatToIntFormat,
+		.Source = {.SpirvBlob = {.Data = FloatToIntFormatShader.second.data(),
+								 .Size = FloatToIntFormatShader.second.size()}},
+		// {.Stage = NOS_SHADER_STAGE_COMP, .GLSLSource = pathStr.c_str()},
+		.AssociatedNodeClassName = NSN_TextureFormatConverter,
 	};
 	nosResult ret = nosVulkan->RegisterShaders(1, &FloatToIntShaderInfo);
 	if (NOS_RESULT_SUCCESS != ret)

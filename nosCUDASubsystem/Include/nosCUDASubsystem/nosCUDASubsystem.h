@@ -392,7 +392,7 @@ typedef struct nosCUDASubsystem
 // Make sure these are same with nossys file.
 #define NOS_CUDA_SUBSYSTEM_NAME "nos.sys.cuda"
 #define NOS_CUDA_SUBSYSTEM_VERSION_MAJOR 2
-#define NOS_CUDA_SUBSYSTEM_VERSION_MINOR 1
+#define NOS_CUDA_SUBSYSTEM_VERSION_MINOR 2
 
 extern struct nosModuleInfo nosCUDAModuleInfo;
 extern nosCUDASubsystem* nosCUDA;

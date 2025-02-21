@@ -1,23 +1,30 @@
 {
-  "nodes": [
-    {
-      "class_name": "TextureToBuffer",
-      "contents_type": "Job",
-      "pins": [
-        {
-          "name": "Input",
-          "type_name": "nos.sys.vulkan.Texture",
-          "show_as": "INPUT_PIN",
-          "can_show_as": "INPUT_PIN_OR_PROPERTY"
-        },
-        {
-          "name": "OutputBuffer",
-          "type_name": "nos.sys.vulkan.Buffer",
-          "show_as": "OUTPUT_PIN",
-          "can_show_as": "OUTPUT_PIN_OR_PROPERTY"
-        }
-      ],
-      "functions": []
-    }
-  ]
+	"nodes": [
+		{
+			"class_name": "TextureToBuffer",
+			"menu_info": {
+				"category": "Interop",
+				"display_name": "Vulkan Texture to Vulkan Buffer"
+			},
+			"node": {
+				"class_name": "TextureToBuffer",
+				"contents_type": "Job",
+				"pins": [
+					{
+						"name": "Input",
+						"type_name": "nos.sys.vulkan.Texture",
+						"show_as": "INPUT_PIN",
+						"can_show_as": "INPUT_PIN_OR_PROPERTY"
+					},
+					{
+						"name": "OutputBuffer",
+						"type_name": "nos.sys.vulkan.Buffer",
+						"show_as": "OUTPUT_PIN",
+						"can_show_as": "OUTPUT_PIN_OR_PROPERTY"
+					}
+				],
+				"functions": []
+			}
+		}
+	]
 }

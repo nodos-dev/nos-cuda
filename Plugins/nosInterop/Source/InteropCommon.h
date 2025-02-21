@@ -5,6 +5,7 @@
 #include "nosCUDASubsystem/Types_generated.h"
 #include "Nodos/PluginAPI.h"
 #include "nosVulkanSubsystem/nosVulkanSubsystem.h"
+#include "nosAIPluginsCommon.h"
 
 union ElementType {
 	nos::sys::vulkan::BufferElementType VulkanElementType;
@@ -23,98 +24,6 @@ typedef struct PinConfig {
 	nos::fb::ShowAs ShowAs;
 	nos::fb::CanShowAs CanShowAs;
 }PinConfig;
-
-__forceinline void CreateStringList(nosUUID& GenUUID, nosUUID& NodeUUID, std::string name, std::vector<std::string> list) {
-	flatbuffers::FlatBufferBuilder fbb;
-	flatbuffers::FlatBufferBuilder fbb2;
-	std::vector<flatbuffers::Offset<nos::fb::Pin>> StrListPin;
-	nos::fb::TVisualizer vis = { .type = nos::fb::VisualizerType::COMBO_BOX, .name = name };
-	auto buf = std::vector<uint8_t>((uint8_t*)list.front().data(), (uint8_t*)list.front().data() + list.front().size() + 1);
-
-	GenUUID = nosEngine.GenerateID();
-
-	StrListPin.push_back(nos::fb::CreatePinDirect(fbb,
-		&GenUUID,
-		name.c_str(),
-		"string",
-		nos::fb::ShowAs::PROPERTY,
-		nos::fb::CanShowAs::PROPERTY_ONLY,
-		0,
-		nos::fb::Visualizer::Pack(fbb, &vis),
-		&buf));
-
-	HandleEvent(nos::CreateAppEvent(fbb,
-		nos::CreatePartialNodeUpdateDirect(fbb, &NodeUUID, nos::ClearFlags::NONE, 0, &StrListPin)));
-
-	HandleEvent(nos::CreateAppEvent(
-		fbb2, nos::app::CreateUpdateStringList(fbb2, nos::fb::CreateStringList(fbb2, fbb2.CreateString(name), fbb2.CreateVectorOfStrings(list)))));
-}
-
-__forceinline void CreateOrUpdateVulkanBufferPin(BufferPin bufferPin, nosUUID* NodeUUID, nosUUID* GeneratedPinUUID, PinConfig config) {
-	std::vector<nos::fb::UUID> pinsToDelete = { *GeneratedPinUUID };
-	flatbuffers::FlatBufferBuilder fbb;
-	std::vector<flatbuffers::Offset<nos::app::AppEvent>> Offsets;
-	auto deletePinEvent = nos::CreateAppEvent(fbb,
-		nos::CreatePartialNodeUpdateDirect(fbb, NodeUUID, nos::ClearFlags::NONE, &pinsToDelete));
-	nosResult res = nosEngine.EnqueueEvent(&deletePinEvent);
-
-	flatbuffers::FlatBufferBuilder fbb2;
-	nos::sys::vulkan::Buffer buffer;
-	buffer.mutate_element_type(bufferPin.Element.VulkanElementType);
-	buffer.mutate_handle(bufferPin.Address);
-	buffer.mutate_size_in_bytes(bufferPin.Size);
-	buffer.mutate_offset(bufferPin.Offset);
-	
-	auto bufPin = nos::Buffer::From(buffer);
-	auto bufferPinBytes = std::vector<uint8_t>((uint8_t*)bufPin.Data(), (uint8_t*)bufPin.Data() + bufPin.Size());
-	*GeneratedPinUUID = nosEngine.GenerateID();
-	std::vector<flatbuffers::Offset<nos::fb::Pin>> Pins;
-	Pins.push_back(nos::fb::CreatePinDirect(fbb2,
-		GeneratedPinUUID,
-		config.Name,
-		nos::sys::vulkan::Buffer::GetFullyQualifiedName(),
-		config.ShowAs,
-		config.CanShowAs,
-		0,
-		0,
-		&bufferPinBytes));
-	auto createPinEvent = CreateAppEvent(fbb2,
-		nos::CreatePartialNodeUpdateDirect(fbb2, NodeUUID, nos::ClearFlags::NONE, 0, &Pins));
-	res = nosEngine.EnqueueEvent(&createPinEvent);
-}
-
-__forceinline void CreateOrUpdateCUDABufferPin(BufferPin bufferPin, nosUUID* NodeUUID, nosUUID* GeneratedPinUUID, PinConfig config) {
-	std::vector<nos::fb::UUID> pinsToDelete = { *GeneratedPinUUID };
-	flatbuffers::FlatBufferBuilder fbb;
-	std::vector<flatbuffers::Offset<nos::app::AppEvent>> Offsets;
-	auto deletePinEvent = nos::CreateAppEvent(fbb,
-		nos::CreatePartialNodeUpdateDirect(fbb, NodeUUID, nos::ClearFlags::NONE, &pinsToDelete));
-	nosResult res = nosEngine.EnqueueEvent(&deletePinEvent);
-
-	flatbuffers::FlatBufferBuilder fbb2;
-	nos::sys::cuda::Buffer buffer;
-	buffer.mutate_element_type(bufferPin.Element.CUDAElementType);
-	buffer.mutate_handle(bufferPin.Address);
-	buffer.mutate_size_in_bytes(bufferPin.Size);
-	buffer.mutate_offset(bufferPin.Offset);
-
-	auto bufPin = nos::Buffer::From(buffer);
-	auto bufferPinBytes = std::vector<uint8_t>((uint8_t*)bufPin.Data(), (uint8_t*)bufPin.Data() + bufPin.Size());
-	*GeneratedPinUUID = nosEngine.GenerateID();
-	std::vector<flatbuffers::Offset<nos::fb::Pin>> Pins;
-	Pins.push_back(nos::fb::CreatePinDirect(fbb2,
-		GeneratedPinUUID,
-		config.Name,
-		nos::sys::vulkan::Buffer::GetFullyQualifiedName(),
-		config.ShowAs,
-		config.CanShowAs,
-		0,
-		0,
-		&bufferPinBytes));
-	auto createPinEvent = CreateAppEvent(fbb2,
-		nos::CreatePartialNodeUpdateDirect(fbb2, NodeUUID, nos::ClearFlags::NONE, 0, &Pins));
-	res = nosEngine.EnqueueEvent(&createPinEvent);
-}
 
 /*
 !!! Integer formats can only be converted to other integer formats with the same signedness. !!!

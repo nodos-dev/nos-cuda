@@ -9,11 +9,9 @@ struct TextureToBufferNodeContext : nos::NodeContext
 {
 	BufferPin BufferPinProxy = {};
 	nosResourceShareInfo Buffer = {};
-	nosUUID NodeUUID = {}, InputUUID = {}, OutputBufferUUID = {};
+	nos::uuid InputUUID = {}, OutputBufferUUID = {};
 	TextureToBufferNodeContext(nosFbNode const* node) : NodeContext(node)
 	{
-		NodeUUID = *node->id();
-
 		for (const auto& pin : *node->pins()) {
 			const char* currentPinName = pin->name()->c_str();
 			if (NSN_Input.Compare(pin->name()->c_str()) == 0) {
@@ -40,11 +38,10 @@ struct TextureToBufferNodeContext : nos::NodeContext
 			//static_cast<uint64_t>(GetComponentNumFromVulkanFormat(in.Info.Texture.Format)) * in.Info.Texture.Width * in.Info.Texture.Height;
 		
 		if (currentSize == Buffer.Memory.Size) {
-			nosCmd texToBuf = {};
+			nosCmd texToBuf = nos::vkss::BeginCmd(NOS_NAME("TexToBuf"), NodeId);
+			nosVulkan->Copy(texToBuf, &in, &Buffer, 0);
 			nosGPUEvent waitTexToBuf = {};
 			nosCmdEndParams endParams = { .ForceSubmit = true, .OutGPUEventHandle = &waitTexToBuf };
-			nosVulkan->Begin("TexToBuf", &texToBuf);
-			nosVulkan->Copy(texToBuf, &in, &Buffer, 0);
 			nosVulkan->End(texToBuf, &endParams);
 			nosVulkan->WaitGpuEvent(&waitTexToBuf, UINT64_MAX);
 			uint8_t* b = nosVulkan->Map(&Buffer);
@@ -57,7 +54,7 @@ struct TextureToBufferNodeContext : nos::NodeContext
 		Buffer.Info.Type = NOS_RESOURCE_TYPE_BUFFER;
 		Buffer.Info.Buffer.Size = currentSize;
 		Buffer.Info.Buffer.Usage = nosBufferUsage(NOS_BUFFER_USAGE_TRANSFER_SRC | NOS_BUFFER_USAGE_TRANSFER_SRC);
-		nosVulkan->CreateResource(&Buffer);
+		nosVulkan->CreateResource(&Buffer, "TextureToBuffer");
 
 		nos::sys::vulkan::Buffer buffer;
 		buffer.mutate_element_type((nos::sys::vulkan::BufferElementType)GetBufferElementTypeFromVulkanFormat(in.Info.Texture.Format));

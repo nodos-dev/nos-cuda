@@ -1,19 +1,26 @@
-    {
-    "nodes": [
-      {
-        "class_name": "CreateStream",
-        "contents_type": "Job",
-        "allows_cyclic": "true",
-        "contents": {},
-        "pins": [
-          {
-            "name": "Stream",
-            "type_name": "nos.sys.cuda.CUDAStream",
-            "show_as": "OUTPUT_PIN",
-            "can_show_as": "OUTPUT_PIN_OR_PROPERTY"
-          }
-        ],
-        "functions": []
-      }
-    ]
+{
+	"nodes": [
+		{
+			"class_name": "CreateStream",
+			"menu_info": {
+				"category": "CUDA|Create Stream",
+				"display_name": "Create CUDA Stream"
+			},
+			"node": {
+				"class_name": "CreateStream",
+				"contents_type": "Job",
+				"allows_cyclic": "true",
+				"contents": {},
+				"pins": [
+					{
+						"name": "Stream",
+						"type_name": "nos.sys.cuda.CUDAStream",
+						"show_as": "OUTPUT_PIN",
+						"can_show_as": "OUTPUT_PIN_OR_PROPERTY"
+					}
+				],
+				"functions": []
+			}
+		}
+	]
 }
