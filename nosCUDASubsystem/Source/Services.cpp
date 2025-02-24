@@ -112,7 +112,7 @@ namespace nos::cudass
 		CHECK_CUDA_RT_ERROR(res);		
 		cuRes = cuCtxSetFlags(CU_CTX_COREDUMP_ENABLE);
 		CHECK_CUDA_DRIVER_ERROR(cuRes);
-		std::string CoreDumpFile = std::string(nosEngine.Context->RootFolderPath) + "/CoreDump.txt";
+		std::string CoreDumpFile = std::string(nosEngine.Module->RootFolderPath) + "/CoreDump.txt";
 		size_t Size = CoreDumpFile.size();
 		cuRes = cuCoredumpSetAttribute(CU_COREDUMP_FILE, &CoreDumpFile, &Size);
 #else

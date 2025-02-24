@@ -34,9 +34,7 @@ endmacro()
 nos_find_sdk("1.3.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
 nos_get_module("nos.sys.vulkan" "6.0" NOS_SYS_VULKAN_TARGET)
 
-
 set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Tools/Windows)
-set(NVCC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems/nosCUDADependencies/v11.8/bin)
 set(FLATC_EXECUTABLE ${NOS_SDK_DIR}/bin/flatc)
 
 set(SUBSYSTEMS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Subsystems)
