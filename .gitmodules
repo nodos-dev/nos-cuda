@@ -19,3 +19,12 @@
 [submodule "Subsystems/nosONNXModels-DepthAnything-v2"]
 	path = Subsystems/nosONNXModels-DepthAnything-v2
 	url = https://github.com/mediaz/nosONNXModels-DepthAnything-v2.git
+[submodule "Dependency Subsystems/nosTensorRTDeps"]
+	path = Dependency Subsystems/nosTensorRTDeps
+	url = https://github.com/mediaz/nosTensorRTDeps-Release.git
+[submodule "Dependency Subsystems/nosCUDADeps"]
+	path = Dependency Subsystems/nosCUDADeps
+	url = https://github.com/mediaz/nosCUDADeps-Release.git
+[submodule "Dependency Subsystems/nosONNXRTDeps"]
+	path = Dependency Subsystems/nosONNXRTDeps
+	url = https://github.com/mediaz/onnxrt-dependencies.git
