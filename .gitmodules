@@ -28,3 +28,6 @@
 [submodule "Dependency Subsystems/nosONNXRTDeps"]
 	path = Dependency Subsystems/nosONNXRTDeps
 	url = https://github.com/mediaz/onnxrt-dependencies.git
+[submodule "Subsystems/nosONNXModels-RVM"]
+	path = Subsystems/nosONNXModels-RVM
+	url = https://github.com/mediaz/nosONNXModels-RVM.git
