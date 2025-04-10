@@ -32,7 +32,7 @@ macro(group_targets targets folder_name)
 endmacro()
 
 nos_find_sdk("1.3.0" NOS_PLUGIN_SDK_TARGET NOS_SUBSYSTEM_SDK_TARGET NOS_SDK_DIR)
-nos_get_module("nos.sys.vulkan" "6.0" NOS_SYS_VULKAN_TARGET)
+nos_get_module("nos.sys.vulkan" "6.21" NOS_SYS_VULKAN_TARGET)
 
 # Check for environment variable & cmake variable
 if(NOT DEFINED CUDA_SDK_PATH)
