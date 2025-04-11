@@ -19,7 +19,6 @@
 
     },
     "node_definitions": [
-      "Config/TextureToBuffer.nosdef",
       "Config/VulkanBufferToCUDABuffer.nosdef",
       "Config/LinearToSRGB.nosdef"
     ],

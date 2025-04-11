@@ -16,7 +16,6 @@ NOS_BEGIN_IMPORT_DEPS()
 	NOS_CUDA_IMPORT()
 NOS_END_IMPORT_DEPS()
 
-nosResult RegisterTextureToBuffer(nosNodeFunctions* outFunctions);
 nosResult RegisterVulkanBufferToCUDABuffer(nosNodeFunctions* outFunctions);
 nosResult RegisterLinearToSRGB(nosNodeFunctions* outFunctions);
 
@@ -24,13 +23,12 @@ struct InteropPluginFunctions : nos::PluginFunctions
 {
 	nosResult ExportNodeFunctions(size_t& outCount, nosNodeFunctions** outFunctions) override
 	{
-		outCount = (size_t)(3);
+		outCount = (size_t)(2);
 		if (!outFunctions)
 			return NOS_RESULT_SUCCESS;
 
-		NOS_RETURN_ON_FAILURE(RegisterTextureToBuffer(outFunctions[0]));
-		NOS_RETURN_ON_FAILURE(RegisterVulkanBufferToCUDABuffer(outFunctions[1]));
-		NOS_RETURN_ON_FAILURE(RegisterLinearToSRGB(outFunctions[2]));
+		NOS_RETURN_ON_FAILURE(RegisterVulkanBufferToCUDABuffer(outFunctions[0]));
+		NOS_RETURN_ON_FAILURE(RegisterLinearToSRGB(outFunctions[1]));
 		return NOS_RESULT_SUCCESS;
 	}
 };
