@@ -1,33 +1,6 @@
-[submodule "tools"]
-	path = tools
-	url = https://github.com/mediaz/tools.git
-[submodule "Subsystems/nosNVVFXDeps"]
-	path = Subsystems/nosNVVFXDeps
-	url = https://github.com/mediaz/nvvfx_sdk
+[submodule "nosCUDADeps"]
+	path = nosCUDADeps
+	url = https://github.com/mediaz/nosCUDADeps-Release.git
 [submodule "Tools"]
 	path = Tools
-	url = https://github.com/mediaz/tools
-[submodule "Subsystems/nosONNXModels-RMBG"]
-	path = Subsystems/nosONNXModels-RMBG
-	url = https://github.com/mediaz/nosONNXModels-RMBG.git
-[submodule "Subsystems/nosONNXModels-DepthAnything"]
-	path = Subsystems/nosONNXModels-DepthAnything
-	url = https://github.com/mediaz/nosONNXModels-DepthAnything.git
-[submodule "Subsystems/nosONNXModels-RT4KSR"]
-	path = Subsystems/nosONNXModels-RT4KSR
-	url = https://github.com/mediaz/nosONNXModels-RT4KSR
-[submodule "Subsystems/nosONNXModels-DepthAnything-v2"]
-	path = Subsystems/nosONNXModels-DepthAnything-v2
-	url = https://github.com/mediaz/nosONNXModels-DepthAnything-v2.git
-[submodule "Dependency Subsystems/nosTensorRTDeps"]
-	path = Dependencies/nosTensorRTDeps
-	url = https://github.com/mediaz/nosTensorRTDeps-Release.git
-[submodule "Dependency Subsystems/nosCUDADeps"]
-	path = Dependencies/nosCUDADeps
-	url = https://github.com/mediaz/nosCUDADeps-Release.git
-[submodule "Dependency Subsystems/nosONNXRTDeps"]
-	path = Dependencies/nosONNXRTDeps
-	url = https://github.com/mediaz/onnxrt-dependencies.git
-[submodule "Subsystems/nosONNXModels-RVM"]
-	path = Subsystems/nosONNXModels-RVM
-	url = https://github.com/mediaz/nosONNXModels-RVM.git
+	url = https://github.com/mediaz/tools.git

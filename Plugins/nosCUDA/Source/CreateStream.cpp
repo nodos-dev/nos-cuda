@@ -4,8 +4,8 @@
 #include <AppService_generated.h> 
 #include <AppEvents_generated.h>
 #include <flatbuffers/flatbuffers.h>
-#include "nosCUDASubsystem/Types_generated.h"
-#include "nosCUDASubsystem/nosCUDASubsystem.h"
+#include <nosCUDASubsystem/Types_generated.h>
+#include <nosCUDASubsystem/nosCUDASubsystem.h>
 
 NOS_REGISTER_NAME(CreateStream);
 NOS_REGISTER_NAME(Stream);

@@ -1,3 +1,5 @@
+# Copyright MediaZ Teknoloji A.S. All Rights Reserved.
+
 nos_generate_flatbuffers("${CMAKE_CURRENT_SOURCE_DIR}/Config" "${CMAKE_CURRENT_SOURCE_DIR}/Include/nosCudaSubsystem" "cpp" "" nosCUDA_generated)
 
 find_library(cuda.lib NAMES cuda.lib PATHS ${CUDA_SDK_PATH}/lib/x64 REQUIRED NO_DEFAULT_PATH)

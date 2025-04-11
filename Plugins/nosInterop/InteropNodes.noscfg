@@ -2,22 +2,18 @@
     "info": {
         "id": {
             "name": "nos.interop",
-            "version": "2.2.0"
+            "version": "2.3.0"
         },
         "description": "Interop Nodes",
       "display_name": "Interop",
       "dependencies": [
-        {
-          "name": "nos.sys.tensor",
-          "version": "2.2.0"
-        },
-{
+		{
           "name": "nos.sys.vulkan",
-          "version": "6.0.0"
+          "version": "6.21.0"
         },
         {
           "name": "nos.sys.cuda",
-          "version": "2.2.0"
+          "version": "2.3.0"
         }
       ]
 
@@ -25,7 +21,6 @@
     "node_definitions": [
       "Config/TextureToBuffer.nosdef",
       "Config/VulkanBufferToCUDABuffer.nosdef",
-      "Config/TextureFormatConverter.nosdef",
       "Config/LinearToSRGB.nosdef"
     ],
     "custom_types": [],

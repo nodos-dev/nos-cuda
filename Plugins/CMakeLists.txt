@@ -1,7 +1,7 @@
 # Copyright MediaZ Teknoloji A.S. All Rights Reserved.
 
 cmake_minimum_required(VERSION 3.24.2)
-project("AI Plugins")
+project("Plugins")
 # Dependencies
 # ------------
 
@@ -19,19 +19,14 @@ else()
     message("Found python ${PYTHON_PATH}")
 endif()
 
+nos_get_module("nos.sys.vulkan" "6.21" NOS_SYS_VULKAN_TARGET)
+nos_get_module("nos.sys.cuda" "2.3" NOS_SYS_CUDA_TARGET)
 
 execute_process(COMMAND python  "${CMAKE_CURRENT_SOURCE_DIR}/compile_shaders.py" RESULT_VARIABLE COMPILE_SHADERS_RESULT)
 
 if (NOT ${COMPILE_SHADERS_RESULT} EQUAL "0")
-    message(FATAL_ERROR "Failed to compile shaders. Process returned ${COMPILE_SHADERS_RESULT}.")
+message(FATAL_ERROR "Failed to compile shaders. Process returned ${COMPILE_SHADERS_RESULT}.")
 endif()
 
-add_subdirectory(nosAIPluginsCommon)
-add_subdirectory(nosTensors)
-add_subdirectory(nosONNX)
 add_subdirectory(nosInterop)
-add_subdirectory(nosAIModelNodes)
-add_subdirectory(nosTokenizer)
-add_subdirectory(nosAI)
 add_subdirectory(nosCUDA)
-add_subdirectory(nosHumanMatting)

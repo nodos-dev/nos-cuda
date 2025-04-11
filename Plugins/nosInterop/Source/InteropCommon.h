@@ -5,7 +5,6 @@
 #include "nosCUDASubsystem/Types_generated.h"
 #include "Nodos/PluginAPI.h"
 #include "nosVulkanSubsystem/nosVulkanSubsystem.h"
-#include "nosAIPluginsCommon.h"
 
 union ElementType {
 	nos::sys::vulkan::BufferElementType VulkanElementType;
