@@ -14,15 +14,15 @@ struct CreateStream : nos::NodeContext
 {
 	nos::uuid StreamPinUUID = {};
 	nosCUDAStream Stream = {};
-	CreateStream(nos::fb::Node const* node) :NodeContext(node) {
-		for (const auto& pin : *node->pins()) {
-			if (NSN_Stream.Compare(pin->name()->c_str()) == 0) {
+	nosResult OnCreate(nosFbNodePtr node) override
+	{
+		for (const auto& pin : *node->pins())
+			if (NSN_Stream.Compare(pin->name()->c_str()) == 0)
 				StreamPinUUID = *pin->id();
-			}
-		}
 		nosCUDA->CreateStream(&Stream);
 		nosCUDAError err = nosCUDA->QueryStream(Stream);
 		SetStreamPin(StreamPinUUID, NodeId, "Stream", reinterpret_cast<uint64_t>(Stream));
+		return NOS_RESULT_SUCCESS;
 	}
 
 	~CreateStream() {

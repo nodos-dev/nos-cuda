@@ -20,7 +20,7 @@ struct TextureFormatConverter : nos::NodeContext
 	nosResourceShareInfo inBuf = {};
 
 	bool IsSavedNode = false;
-	TextureFormatConverter(nosFbNodePtr node) : NodeContext(node)
+	nosResult OnCreate(nosFbNodePtr node) override
 	{
 		for (const auto& pin : *node->pins()) {
 			if (NSN_Input.Compare(pin->name()->c_str()) == 0) {
@@ -59,6 +59,7 @@ struct TextureFormatConverter : nos::NodeContext
 			}
 			CreateStringListPin(FormatUUID, NodeId, NSN_OutputFormat.AsString(), std::move(Formats));
 		}
+		return NOS_RESULT_SUCCESS;
 	}
 
 	~TextureFormatConverter() {

@@ -10,7 +10,7 @@ struct TextureToBufferNodeContext : nos::NodeContext
 	BufferPin BufferPinProxy = {};
 	nosResourceShareInfo Buffer = {};
 	nos::uuid InputUUID = {}, OutputBufferUUID = {};
-	TextureToBufferNodeContext(nosFbNode const* node) : NodeContext(node)
+	nosResult OnCreate(nosFbNodePtr node) override
 	{
 		for (const auto& pin : *node->pins()) {
 			const char* currentPinName = pin->name()->c_str();
@@ -21,6 +21,7 @@ struct TextureToBufferNodeContext : nos::NodeContext
 				OutputBufferUUID = *pin->id();
 			}
 		}
+		return NOS_RESULT_SUCCESS;
 	}
 
 	nosResult ExecuteNode(nosNodeExecuteParams* params) override

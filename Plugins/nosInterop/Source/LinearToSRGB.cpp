@@ -10,23 +10,20 @@ struct LinearToSRGB : nos::NodeContext
 {
 	BufferPin BufferPinProxy = {};
 	nosResourceShareInfo Input = {}, Output = {};
-	nos::uuid InputUUID = {}, OutputUUID = {};
-	LinearToSRGB(nosFbNode const* node) : NodeContext(node)
+	nos::uuid OutputUUID = {};
+	nosResult OnCreate(nosFbNodePtr node) override
 	{
-
 		for (const auto& pin : *node->pins()) {
 			const char* currentPinName = pin->name()->c_str();
-			if (NSN_Input.Compare(pin->name()->c_str()) == 0) {
-				InputUUID = *pin->id();
-			}
-			else if (NSN_Output.Compare(pin->name()->c_str()) == 0) {
+			if (NSN_Output.Compare(pin->name()->c_str()) == 0) {
 				OutputUUID = *pin->id();
 			}
 		}
+		return NOS_RESULT_SUCCESS;
 	}
 	void OnPinValueChanged(nos::Name pinName, const nos::uuid& pinId, nosBuffer value) override 
 	{
-		if (pinId == InputUUID) {
+		if (pinName == NSN_Input) {
 			nosResourceShareInfo in = nos::vkss::DeserializeTextureInfo(value.Data);
 			PrepareResources(in);
 		}

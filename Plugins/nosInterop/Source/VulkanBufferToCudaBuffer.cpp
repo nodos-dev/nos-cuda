@@ -12,7 +12,7 @@ struct VulkanBufferToCUDABuffer : nos::NodeContext
 	nosResourceShareInfo Buffer = {};
 	nos::uuid InputBufferUUID = {}, OutputBufferUUID = {};
 	nosCUDABufferInfo CUDABuffer = {};
-	VulkanBufferToCUDABuffer(nosFbNodePtr node) : NodeContext(node)
+	nosResult OnCreate(nosFbNodePtr node) override
 	{
 		for (const auto& pin : *node->pins()) {
 			if (NSN_InputBuffer.Compare(pin->name()->c_str()) == 0) {
@@ -22,6 +22,7 @@ struct VulkanBufferToCUDABuffer : nos::NodeContext
 				OutputBufferUUID = *pin->id();
 			}
 		}
+		return NOS_RESULT_SUCCESS;
 	}
 
 	void OnPinValueChanged(nos::Name pinName, const nos::uuid& pinId, nosBuffer value) override
