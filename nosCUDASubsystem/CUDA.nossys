@@ -2,7 +2,7 @@
   "info": {
     "id": {
       "name": "nos.sys.cuda",
-      "version": "2.3.0"
+      "version": "2.10.0"
     },
     "display_name": "CUDA Subsystem",
     "description": "CUDA Subsystem for Nodos.",

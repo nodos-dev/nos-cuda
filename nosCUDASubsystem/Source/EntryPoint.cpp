@@ -1,5 +1,5 @@
 // Copyright MediaZ Teknoloji A.S. All Rights Reserved.
-#include <Nodos/SubsystemAPI.h>
+#include <Nodos/PluginAPI.h>
 #include "Services.h"
 
 NOS_INIT();
@@ -12,10 +12,10 @@ namespace nos::cudass
 extern "C"
 {
 
-NOSAPI_ATTR nosResult NOSAPI_CALL nosExportSubsystem(nosSubsystemFunctions* subsystemFunctions)
+NOSAPI_ATTR nosResult NOSAPI_CALL nosExportPlugin(nosPluginFunctions* pluginFunctions)
 {
 	nos::cudass::Initialize(0);
-	subsystemFunctions->OnRequest = [](uint32_t minor, void** outSubsystemCtx) -> nosResult {(*outSubsystemCtx) = new nosCUDASubsystem;
+	pluginFunctions->OnRequest = [](uint32_t minor, void** outSubsystemCtx) -> nosResult {(*outSubsystemCtx) = new nosCUDASubsystem;
 																								nos::cudass::Bind((nosCUDASubsystem*)(*outSubsystemCtx));
 																							return NOS_RESULT_SUCCESS; };
 	// TODO: Garbage Collect on unload

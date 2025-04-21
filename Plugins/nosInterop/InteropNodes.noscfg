@@ -2,18 +2,18 @@
     "info": {
         "id": {
             "name": "nos.interop",
-            "version": "2.3.0"
+            "version": "2.10.0"
         },
         "description": "Interop Nodes",
       "display_name": "Interop",
       "dependencies": [
 		{
           "name": "nos.sys.vulkan",
-          "version": "6.21.0"
+          "version": "6.22.0"
         },
         {
           "name": "nos.sys.cuda",
-          "version": "2.3.0"
+          "version": "2.10.0"
         }
       ]
 

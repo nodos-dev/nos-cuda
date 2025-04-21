@@ -56,7 +56,7 @@ namespace nos::cudass
 	
 	nosResult Initialize(int device); //Initialize CUDA Runtime
 
-	nosResult SetContext(nosCUDAContext cudaContext); //Sets and initializes the given CUDA Context for the calling module as current for any subsequent calls from that module
+	nosResult SetContext(nosCUDAContext cudaContext); //Sets and initializes the given CUDA Context for the calling Plugin as current for any subsequent calls from that Plugin
 	nosResult SetCurrentContextToPrimary(); //Sets the current context as the primary context of CUDA Subsystem
 	
 	nosResult GetCurrentContext(nosCUDAContext* cudaContext); //Retrieve the primary CUDA Context of CUDA Subsystem

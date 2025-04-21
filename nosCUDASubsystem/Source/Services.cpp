@@ -4,7 +4,7 @@
 #include <cstring>
 #include "CUDASubsysCommon.h"
 // SDK
-#include <Nodos/SubsystemAPI.h>
+#include <Nodos/PluginAPI.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <curand_kernel.h>
@@ -12,7 +12,7 @@
 
 namespace nos::cudass 
 {
-	nosResult GetCallingModuleID(nos::Name* ID);
+	nosResult GetCallingPluginId(nos::Name* ID);
 	void Bind(nosCUDASubsystem* subsys) {
 
 		subsys->CreateCUDAContext = CreateCUDAContext;
@@ -69,7 +69,7 @@ namespace nos::cudass
 	nosResult NOSAPI_CALL CreateCUDAContext(nosCUDAContext* cudaContext, int device, nosCUDAContextFlags flags)
 	{
 		nos::Name ID{};
-		nosResult nosRes = GetCallingModuleID(&ID);
+		nosResult nosRes = GetCallingPluginId(&ID);
 		if (nosRes != NOS_RESULT_SUCCESS)
 			return nosRes;
 		CUcontext theContext = {};
@@ -112,7 +112,7 @@ namespace nos::cudass
 		CHECK_CUDA_RT_ERROR(res);		
 		cuRes = cuCtxSetFlags(CU_CTX_COREDUMP_ENABLE);
 		CHECK_CUDA_DRIVER_ERROR(cuRes);
-		std::string CoreDumpFile = std::string(nosEngine.Module->RootFolderPath) + "/CoreDump.txt";
+		std::string CoreDumpFile = std::string(nosEngine.Plugin->RootFolderPath) + "/CoreDump.txt";
 		size_t Size = CoreDumpFile.size();
 		cuRes = cuCoredumpSetAttribute(CU_COREDUMP_FILE, &CoreDumpFile, &Size);
 #else
@@ -816,7 +816,7 @@ namespace nos::cudass
 	FORCEINLINE nosResult ContextSwitch()
 	{
 		nos::Name ID{};
-		nosResult nosRes = GetCallingModuleID(&ID);
+		nosResult nosRes = GetCallingPluginId(&ID);
 		if (nosRes != NOS_RESULT_SUCCESS)
 			return nosRes;
 
@@ -840,10 +840,10 @@ namespace nos::cudass
 		return NOS_RESULT_SUCCESS;
 	}
 
-	FORCEINLINE nosResult GetCallingModuleID(nos::Name* ID)
+	FORCEINLINE nosResult GetCallingPluginId(nos::Name* ID)
 	{
-		nosModuleInfo moduleContext = {};
-		nosResult nosRes = nosEngine.GetCallingModule(&moduleContext);
+		nosPluginInfo moduleContext = {};
+		nosResult nosRes = nosEngine.GetCallingPlugin(&moduleContext);
 		if (nosRes != NOS_RESULT_SUCCESS)
 			return nosRes;
 		(*ID) = moduleContext.Id.Name;
