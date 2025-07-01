@@ -32,7 +32,7 @@ macro(group_targets targets folder_name)
 endmacro()
 
 add_compile_definitions(NOS_DISABLE_DEPRECATED)
-nos_find_plugin_sdk("38.1.0" NOS_PLUGIN_SDK_TARGET NOS_SDK_DIR)
+nos_find_plugin_sdk("39.0.0" NOS_PLUGIN_SDK_TARGET NOS_SDK_DIR)
 
 # Check for environment variable & cmake variable
 if(NOT DEFINED CUDA_SDK_PATH)
