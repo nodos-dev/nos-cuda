@@ -2,20 +2,16 @@
   "info": {
     "id": {
       "name": "nos.cuda",
-      "version": "1.10.0"
+      "version": "1.11.0"
     },
     "description": "Nodos CUDA Nodes",
     "display_name": "nosCUDA",
     "dependencies": [
       {
         "name": "nos.sys.cuda",
-        "version": "2.10.0"
+        "version": "3.0.0"
       }
     ]
   },
-  "node_definitions": [
-    "Config/CreateStream.nosdef"
-  ],
-  "custom_types": [],
   "binary_path": "Binaries/nosCUDAPlugin"
 }

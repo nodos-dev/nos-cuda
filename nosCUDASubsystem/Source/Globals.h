@@ -1,7 +1,7 @@
 #pragma once
 #include "nosCUDASubsystem/nosCUDASubsystem.h"
 #include "CUDASubsysCommon.h"
-#include <Nodos/Helpers.hpp>
+#include <Nodos/Plugin.hpp>
 namespace nos::cudass 
 {
 	extern UtilsProxy::ResourceManagerProxy<nosCUDABufferInfo> ResManager;

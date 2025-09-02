@@ -2,7 +2,7 @@
   "info": {
     "id": {
       "name": "nos.sys.cuda",
-      "version": "2.10.1"
+      "version": "3.0.0"
     },
     "display_name": "CUDA Subsystem",
     "description": "CUDA Subsystem for Nodos.",
@@ -13,8 +13,5 @@
       }
     ]
   },
-  "binary_path": "./Binaries/nosCUDASubsystem",
-  "custom_types": [
-    "./Config/Types.fbs"
-  ]
+  "binary_path": "./Binaries/nosCUDASubsystem"
 }

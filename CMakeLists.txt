@@ -44,7 +44,6 @@ endif()
 message(STATUS "CUDA_PATH: ${CUDA_SDK_PATH}")
 
 set(TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Tools/Windows)
-set(FLATC_EXECUTABLE ${NOS_SDK_DIR}/bin/flatc)
 
 add_subdirectory("nosCUDASubsystem" "${CMAKE_CURRENT_BINARY_DIR}/nosCUDASubsystem")
 get_targets(SUBSYSTEM_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/nosCUDASubsystem")

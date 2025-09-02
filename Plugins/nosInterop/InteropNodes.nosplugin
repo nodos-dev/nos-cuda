@@ -2,26 +2,21 @@
     "info": {
         "id": {
             "name": "nos.interop",
-            "version": "2.10.0"
+            "version": "2.11.0"
         },
         "description": "Interop Nodes",
       "display_name": "Interop",
       "dependencies": [
 		{
           "name": "nos.sys.vulkan",
-          "version": "6.22.0"
+          "version": "7.0"
         },
         {
           "name": "nos.sys.cuda",
-          "version": "2.10.0"
+          "version": "3.0"
         }
       ]
 
     },
-    "node_definitions": [
-      "Config/VulkanBufferToCUDABuffer.nosdef",
-      "Config/LinearToSRGB.nosdef"
-    ],
-    "custom_types": [],
     "binary_path": "Binaries/nosInterop"
 }
