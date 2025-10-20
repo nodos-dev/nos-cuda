@@ -19,7 +19,7 @@ else()
     message("Found python ${PYTHON_PATH}")
 endif()
 
-nos_get_module("nos.sys.vulkan" "7.0" NOS_SYS_VULKAN_TARGET)
+nos_get_module("nos.sys.vulkan" "7.1" NOS_SYS_VULKAN_TARGET)
 nos_get_module("nos.sys.cuda" "3.0" NOS_SYS_CUDA_TARGET)
 
 execute_process(COMMAND python  "${CMAKE_CURRENT_SOURCE_DIR}/compile_shaders.py" RESULT_VARIABLE COMPILE_SHADERS_RESULT)
