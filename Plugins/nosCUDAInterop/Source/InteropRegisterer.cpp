@@ -4,8 +4,8 @@
 #include <AppService_generated.h>
 #include <AppEvents_generated.h>
 #include "Nodos/Plugin.hpp"
-#include <nosVulkanSubsystem/nosVulkanSubsystem.h>
-#include <nosCUDASubsystem/nosCUDASubsystem.h>
+#include <nosSysVulkan/nosVulkanSubsystem.h>
+#include <nosSysCuda/nosCUDASubsystem.h>
 
 NOS_INIT();
 NOS_VULKAN_INIT();

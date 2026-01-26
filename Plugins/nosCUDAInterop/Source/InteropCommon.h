@@ -1,10 +1,10 @@
 #pragma once
 #ifndef INTEROP_COMMON_H_INCLUDED
 #define INTEROP_COMMON_H_INCLUDED
-#include "nosVulkanSubsystem/Types_generated.h"
-#include "nosCUDASubsystem/Types_generated.h"
+#include "nosSysVulkan/Types_generated.h"
+#include "nosSysCuda/Types_generated.h"
 #include "Nodos/PluginAPI.h"
-#include "nosVulkanSubsystem/nosVulkanSubsystem.h"
+#include "nosSysVulkan/nosVulkanSubsystem.h"
 
 union ElementType {
 	nos::sys::vulkan::BufferElementType VulkanElementType;

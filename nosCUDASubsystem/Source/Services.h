@@ -1,7 +1,7 @@
 // Copyright MediaZ Teknoloji A.S. All Rights Reserved.
 
 #pragma once
-#include "nosCUDASubsystem/nosCUDASubsystem.h"
+#include "nosSysCuda/nosCUDASubsystem.h"
 
 #define CHECK_CUDA_RT_ERROR(cudaErr)	\
 	do{							\

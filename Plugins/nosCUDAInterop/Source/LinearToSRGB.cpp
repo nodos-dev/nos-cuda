@@ -1,6 +1,6 @@
 #include <Nodos/Plugin.hpp>
-#include <nosVulkanSubsystem/Helpers.hpp>
-#include <nosVulkanSubsystem/Types_generated.h>
+#include <nosSysVulkan/Helpers.hpp>
+#include <nosSysVulkan/Types_generated.h>
 #include "InteropCommon.h"
 #include "InteropNames.h"
 #include "LinearToSRGB.frag.spv.dat"
@@ -8,8 +8,7 @@ std::pair<nos::Name, std::vector<uint8_t>> LinearToSRGBShader;
 
 struct LinearToSRGB : nos::NodeContext
 {
-	BufferPin BufferPinProxy = {};
-	nosResourceShareInfo Input = {}, Output = {};
+	nos::ForeignObjectRef Output = {};
 	nos::uuid OutputUUID = {};
 	nosResult OnCreate(nosFbNodePtr node) override
 	{
@@ -21,18 +20,22 @@ struct LinearToSRGB : nos::NodeContext
 		}
 		return NOS_RESULT_SUCCESS;
 	}
-	void OnPinValueChanged(nos::Name pinName, const nos::uuid& pinId, nosBuffer value) override 
+	void OnPinObjectChanged(nos::Name pinName, nos::uuid const& pinId, nosObjectId newHandle) override
 	{
-		if (pinName == NSN_Input) {
-			nosResourceShareInfo in = nos::vkss::DeserializeTextureInfo(value.Data);
-			PrepareResources(in);
+		if (pinName == NSN_Input)
+		{
+			if (auto info = nos::sys::vulkan::GetResourceInfo(newHandle))
+			{
+				PrepareResources(*info);
+			}
 		}
 	}
 
-	nosResult ExecuteNode(nosNodeExecuteParams* params) override
+	nosResult ExecuteNode(nos::NodeExecuteParams const& params) override
 	{
 		std::vector<nosShaderBinding> inputs;
-		inputs.emplace_back(nos::vkss::ShaderBinding(NSN_Input, Input));
+		nos::ObjectRef in = params.GetPinObject(NSN_Input);
+		inputs.emplace_back(nos::sys::vulkan::ShaderTextureBinding(NSN_Input, in, NOS_TEXTURE_FILTER_LINEAR));
 
 		nosRunPassParams pass = {
 			.Key = NSN_LinearToSRGB_Pass,
@@ -42,7 +45,7 @@ struct LinearToSRGB : nos::NodeContext
 			.Wireframe = false,
 		};
 
-		nosCmd cmdRunPass = nos::vkss::BeginCmd(NOS_NAME("Linear to SRGB Pass"), NodeId);
+		nosCmd cmdRunPass = nos::sys::vulkan::BeginCmd(NOS_NAME("Linear to SRGB Pass"), NodeId);
 		nosGPUEvent eventHandle = {};
 		nosCmdEndParams endParams = { .ForceSubmit = true, .OutGPUEventHandle = &eventHandle };
 		nosVulkan->RunPass(cmdRunPass, &pass);
@@ -52,32 +55,19 @@ struct LinearToSRGB : nos::NodeContext
 		return NOS_RESULT_SUCCESS;
 	}
 
-	void PrepareResources(nosResourceShareInfo& in) {
-		uint64_t currentSize = in.Memory.Size;
-			//static_cast<uint64_t>(GetComponentBytesFromVulkanFormat(in.Info.Texture.Format)) *
-			//static_cast<uint64_t>(GetComponentNumFromVulkanFormat(in.Info.Texture.Format)) * in.Info.Texture.Width * in.Info.Texture.Height;
-		if (in.Info.Texture.Width == Input.Info.Texture.Width && in.Info.Texture.Height == Input.Info.Texture.Height && in.Info.Texture.Format == Input.Info.Texture.Format) {
-			Input = in;
-			return;
+	void PrepareResources(const nosResourceInfo& in)
+	{
+		if (Output) {
+			auto outInfo = nos::sys::vulkan::GetResourceInfo(Output);
+			if (outInfo && in.Texture.Width == outInfo->Texture.Width && in.Texture.Height == outInfo->Texture.Height && in.Texture.Format == outInfo->Texture.Format)
+			{
+				return;		
+			}
 		}
 
-		if (Output.Memory.Handle != NULL) {
-			nosVulkan->DestroyResource(&Output);
-		}
-		Output = in;
-		Output.Memory = nosMemoryInfo{};
-		nosVulkan->CreateResource(&Output, "LinearToSRGB Output");
-
-		auto TTexture = nos::vkss::ConvertTextureInfo(Output);
-		flatbuffers::FlatBufferBuilder fbb;
-		auto TextureTable = nos::sys::vulkan::Texture::Pack(fbb, &TTexture);
-		fbb.Finish(TextureTable);
-
-		nosEngine.SetPinValueDirect(OutputUUID, { .Data = fbb.GetBufferPointer(), .Size = fbb.GetSize() });
-		
-		Input = in;
-
-		return;
+		Output = nos::sys::vulkan::CreateResource(in, "LinearToSRGB Output");
+		if (Output)
+			SetPinObject(OutputUUID, Output);
 	}
 
 };

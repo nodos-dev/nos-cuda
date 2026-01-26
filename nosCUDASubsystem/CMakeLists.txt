@@ -1,6 +1,13 @@
 # Copyright MediaZ Teknoloji A.S. All Rights Reserved.
 
-nos_generate_flatbuffers("${CMAKE_CURRENT_SOURCE_DIR}/Types" "${CMAKE_CURRENT_SOURCE_DIR}/Include/nosCudaSubsystem" "cpp" "" nosCUDA_generated)
+# Check for environment variable & cmake variable
+if(NOT DEFINED CUDA_SDK_PATH)
+	if(NOT DEFINED ENV{CUDA_PATH})
+		message(FATAL_ERROR "CUDA_PATH environment or cmake variable is not set.")
+	endif()
+	set(CUDA_SDK_PATH $ENV{CUDA_PATH})
+endif()
+nos_message(STATUS "CUDA Path: ${CUDA_SDK_PATH}")
 
 find_library(cuda.lib NAMES cuda.lib PATHS ${CUDA_SDK_PATH}/lib/x64 REQUIRED NO_DEFAULT_PATH)
 find_library(cudadevrt.lib NAMES cudadevrt.lib PATHS ${CUDA_SDK_PATH}/lib/x64 REQUIRED NO_DEFAULT_PATH)
@@ -8,13 +15,10 @@ find_library(cudart.lib NAMES cudart.lib PATHS ${CUDA_SDK_PATH}/lib/x64 REQUIRED
 find_library(cudart_static.lib NAMES cudart_static.lib PATHS ${CUDA_SDK_PATH}/lib/x64 REQUIRED NO_DEFAULT_PATH)
 find_library(OpenCL.lib NAMES OpenCL.lib PATHS ${CUDA_SDK_PATH}/lib/x64 REQUIRED NO_DEFAULT_PATH)
 
-nos_add_plugin("nosCudaSubsystem" "nosCUDA_generated;${NOS_PLUGIN_SDK_TARGET};${CUDA_SDK_PATH}/lib/x64/cuda.lib;${CUDA_SDK_PATH}/lib/x64/cudadevrt.lib;${CUDA_SDK_PATH}/lib/x64/cudart.lib;${CUDA_SDK_PATH}/lib/x64/cudart_static.lib;${CUDA_SDK_PATH}/lib/x64/OpenCL.lib"
+target_link_libraries(${NOS_PLUGIN_TARGET} PRIVATE cuda.lib cudadevrt.lib cudart.lib cudart_static.lib OpenCL.lib)
+target_include_directories(${NOS_PLUGIN_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Include" "${CUDA_SDK_PATH}/include")
+target_link_directories(${NOS_PLUGIN_TARGET} PRIVATE "${CUDA_SDK_PATH}/lib/x64/")
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Include;${CUDA_SDK_PATH}/include")
+set_target_properties(${NOS_PLUGIN_TARGET} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(${NOS_PLUGIN_TARGET} PROPERTIES CUDA_ARCHITECTURES native)
 
-link_directories(${CUDA_SDK_PATH}/lib/x64/)
-set_target_properties(nosCudaSubsystem PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(nosCudaSubsystem PROPERTIES CUDA_ARCHITECTURES native)
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
-target_compile_definitions(nosCudaSubsystem PRIVATE BUILDING_NOS_VULKAN_SUBSYSTEM)

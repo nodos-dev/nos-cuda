@@ -1,0 +1,24 @@
+{
+    "info": {
+        "id": {
+            "name": "nos.cuda.interop",
+            "version": "2.11.0"
+        },
+        "description": "CUDA interoperability plugin",
+      "display_name": "CUDA Interop",
+      "dependencies": [
+		{
+          "name": "nos.sys.vulkan",
+          "version": "8.0"
+        },
+        {
+          "name": "nos.sys.cuda",
+          "version": "3.0"
+        }
+      ]
+
+    },
+    "binary_path": "Binaries/nosInterop",
+  "sdk_version": "41.0",
+  "schema_version": "1.4-v1"
+}
