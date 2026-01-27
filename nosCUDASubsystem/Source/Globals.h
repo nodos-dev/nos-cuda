@@ -2,7 +2,7 @@
 #include "nosCUDASubsystem/nosCUDASubsystem.h"
 #include "CUDASubsysCommon.h"
 #include <Nodos/Plugin.hpp>
-namespace nos::cudass 
+namespace nos::sys::cuda 
 {
 	extern UtilsProxy::ResourceManagerProxy<nosCUDABufferInfo> ResManager;
 	extern UtilsProxy::ResourceManagerProxy<nosCUDAStream> StreamManager;

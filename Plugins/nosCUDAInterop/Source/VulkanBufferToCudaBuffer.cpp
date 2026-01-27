@@ -9,7 +9,7 @@
 struct VulkanBufferToCUDABuffer : nos::NodeContext
 {
 	BufferPin VulkanBufferPinProxy = {};
-	nosCUDABufferInfo CUDABuffer = {};
+	nosCudaBufferInfo CUDABuffer = {};
 
 	void OnPinObjectChanged(nos::Name pinName, nos::uuid const& pinId, nosObjectId newHandle) override
 	{
@@ -24,8 +24,8 @@ struct VulkanBufferToCUDABuffer : nos::NodeContext
 					// Resource is already imported
 					return;
 				}
-				nosResult res = nosCUDA->ImportExternalMemoryAsCUDABuffer(extMemInfo.Handle, extMemInfo.AllocationSize, 
-					resourceInfo.Buffer.Size, extMemInfo.Offset, EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUEWIN32, &CUDABuffer);
+				nosResult res = nosCuda->ImportExternalMemoryAsCudaBuffer(extMemInfo.Handle, extMemInfo.AllocationSize, 
+					resourceInfo.Buffer.Size, extMemInfo.Offset, NOS_CUDA_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUEWIN32, &CUDABuffer);
 				if (res != NOS_RESULT_SUCCESS)
 				{
 					nosEngine.LogE("Import from Vulkan to CUDA failed!");

@@ -41,13 +41,12 @@ enum BufferElementType: uint
 }
  
 struct Buffer (skip_make) {
-    handle:ulong (hidden_property);
+    handle: ulong (hidden_property);
     offset: ulong;
-    size_in_bytes:ulong(units : "bytes");
+    size_in_bytes: ulong(units : "bytes");
     external_memory: ExternalMemory (native_inline, hidden_property);
     element_type: BufferElementType;
 }
 
-table CUDAStream{
-	handle: ulong;
+table Stream {
 }
