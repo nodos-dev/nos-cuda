@@ -268,14 +268,42 @@ typedef struct nosCudaVersion
 	unsigned short Minor;
 } nosCudaVersion;
 
+typedef struct nosCudaBufferImportInfo
+{
+	uint64_t AllocationSize;
+	uint64_t Offset;
+	uint64_t ExternalMemoryHandle;
+	nosCudaExternalMemoryHandleType ExternalMemoryHandleType;
+} nosCudaBufferImportInfo;
+
+typedef enum nosCudaBufferCreationType
+{
+	NOS_CUDA_BUFFER_CREATION_TYPE_DEVICE = 0,
+	NOS_CUDA_BUFFER_CREATION_TYPE_HOST_PAGE_LOCKED = 1,
+	NOS_CUDA_BUFFER_CREATION_TYPE_MANAGED = 2,
+	NOS_CUDA_BUFFER_CREATION_TYPE_IMPORTED = 3,
+} nosCudaBufferCreationType;
+
 typedef struct nosCudaBufferCreateInfo
 {
-	uint64_t Offset;
-	uint64_t AllocationSize;
-	uint64_t BlockSize;
-	bool IsImported;
-	uint64_t ImportedInternalHandle; //This is for CUDA to clean memory
-	uint64_t ImportedExternalHandle; //original handle used to import
+	nosCudaBufferCreationType Type;
+	/// Size in bytes for non-imported buffers. For imported buffers, used as BlockSize.
+	uint64_t Size;
+	union
+	{
+		struct
+		{
+			/// If true, buffer will be exported for interop.
+			nosBool Export;
+		} Device;
+		struct
+		{
+		} HostPageLocked;
+		struct
+		{
+		} Managed;
+		nosCudaBufferImportInfo Imported;
+	};
 } nosCudaBufferCreateInfo;
 
 typedef struct nosCudaBufferShareInfo
@@ -290,7 +318,12 @@ typedef struct nosCudaBufferInfo
 	uint64_t Address;
 	nosCudaMemoryType MemoryType;
 	nosCudaBufferShareInfo ShareInfo;
-	nosCudaBufferCreateInfo CreateInfo;
+	uint64_t Offset;
+	uint64_t AllocationSize;
+	uint64_t BlockSize;
+	bool IsImported;
+	uint64_t ImportedCudaExternalMemory; //CUDA external memory handle for cleanup
+	uint64_t ImportedExternalHandle; //original handle used to import
 } nosCudaBufferInfo;
 
 typedef struct nosCudaDeviceProperties
@@ -317,6 +350,7 @@ typedef struct nosCudaCallbackContext
 #pragma endregion
 
 typedef nosObjectId nosCudaStreamObject;
+typedef nosObjectId nosCudaBufferObject;
 
 typedef struct nosCudaSubsystem
 {
@@ -395,15 +429,8 @@ typedef struct nosCudaSubsystem
 	                                                nosCudaExternalSemaphore extSem,
 	                                                uint64_t value);
 
-	nosResult (NOSAPI_CALL*CreateBufferOnCuda)(nosCudaBufferInfo* cudaBuffer, uint64_t size);
-	//CUDA Memory, can be used in kernels etc.
-	nosResult (NOSAPI_CALL*CreateShareableBufferOnCuda)(nosCudaBufferInfo* cudaBuffer, uint64_t size);
-	//Exportable CUDA memory
-	nosResult (NOSAPI_CALL*CreateBufferOnManagedMemory)(nosCudaBufferInfo* cudaBuffer, uint64_t size);
-	//Allocates in Unified Memory Space 
-	nosResult (NOSAPI_CALL*CreateBufferPinned)(nosCudaBufferInfo* cudaBuffer, uint64_t size);
-	//Allocates Pinned(page-locked) memory in RAM
-	nosResult (NOSAPI_CALL*CreateBuffer)(nosCudaBufferInfo* cudaBuffer, uint64_t size); //Allocates memory in RAM
+	/// Create CUDA Buffer
+	nosResult (NOSAPI_CALL* CreateBuffer)(nosCudaBufferCreateInfo* createInfo, nosObjectReference* outCudaBufferObject);
 	nosResult (NOSAPI_CALL*InitBuffer)(void* source,
 	                                   uint64_t size,
 	                                   nosCudaMemoryType type,
@@ -413,18 +440,16 @@ typedef struct nosCudaSubsystem
 	nosResult (NOSAPI_CALL*CopyBuffersAsync)(nosCudaStreamObject stream,
 	                                         nosCudaBufferInfo* source,
 	                                         nosCudaBufferInfo* destination);
-	nosResult (NOSAPI_CALL*GetCUDABufferFromAddress)(uint64_t address, nosCudaBufferInfo* outBuffer);
+	nosResult (NOSAPI_CALL*GetCudaBufferFromAddress)(uint64_t address, nosObjectReference* outCudaBufferObject);
+	nosResult (NOSAPI_CALL*GetCudaBufferInfo)(nosCudaBufferObject buffer, nosCudaBufferInfo* outBufferInfo);
 	//In case you lost the cuda buffer (hope not)
 
 	nosResult (NOSAPI_CALL*DestroyBuffer)(nosCudaBufferInfo* cudaBuffer); //Free the memory
 
 	//Interop
-	nosResult (NOSAPI_CALL*ImportExternalMemoryAsCudaBuffer)(uint64_t Handle,
-	                                                         size_t BlockSize,
-	                                                         size_t AllocationSize,
-	                                                         size_t Offset,
-	                                                         nosCudaExternalMemoryHandleType handleType,
-	                                                         nosCudaBufferInfo* outBuffer);
+	nosResult (NOSAPI_CALL*ImportExternalMemoryAsCudaBuffer)(nosCudaBufferImportInfo* importInfo,
+	                                                         uint64_t blockSize,
+	                                                         nosObjectReference* outCudaBufferObject);
 	nosResult (NOSAPI_CALL*ImportExternalSemaphore)(uint64_t handle,
 	                                                nosCudaExternalSemaphoreHandleType handleType,
 	                                                nosCudaExternalSemaphore* extSem);

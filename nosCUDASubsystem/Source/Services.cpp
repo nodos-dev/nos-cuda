@@ -2,7 +2,7 @@
 
 #include "Services.h"
 #include <cstring>
-#include "CUDASubsysCommon.h"
+#include "Common.hpp"
 // SDK
 #include <Nodos/PluginAPI.h>
 #include <cuda_runtime.h>
@@ -51,14 +51,11 @@ void Bind(nosCudaSubsystem* subsys)
 
 	subsys->AddCallback = AddCallback;
 
-	subsys->CreateBufferOnCuda = CreateBufferOnCuda;
-	subsys->CreateShareableBufferOnCuda = CreateShareableBufferOnCuda;
-	subsys->CreateBufferOnManagedMemory = CreateBufferOnManagedMemory;
-	subsys->CreateBufferPinned = CreateBufferPinned;
 	subsys->CreateBuffer = CreateBuffer;
 	subsys->CopyBuffers = CopyBuffers;
 	subsys->CopyBuffersAsync = CopyBuffersAsync;
-	subsys->GetCUDABufferFromAddress = GetCudaBufferFromAddress;
+	subsys->GetCudaBufferFromAddress = GetCudaBufferFromAddress;
+	subsys->GetCudaBufferInfo = GetCudaBufferInfo;
 
 	subsys->DestroyBuffer = DestroyBuffer;
 
@@ -389,13 +386,13 @@ nosResult NOSAPI_CALL CopyBuffers(nosCudaBufferInfo* source, nosCudaBufferInfo* 
 		nosEngine.LogE("Invalid memory type for CUDA memcopy operation.");
 		return NOS_RESULT_FAILED;
 	}
-	if (source->CreateInfo.AllocationSize != destination->CreateInfo.AllocationSize)
+	if (source->AllocationSize != destination->AllocationSize)
 	{
 		nosEngine.LogW("nosCUDABuffers have size mismatch, trimming will be performed for copying.");
 	}
 
 	cudaError res = cudaSuccess;
-	size_t safeCopySize = std::min(source->CreateInfo.AllocationSize, destination->CreateInfo.BlockSize);
+	size_t safeCopySize = std::min(source->AllocationSize, destination->BlockSize);
 	cudaMemcpyKind kind{};
 	switch (source->MemoryType)
 	{
@@ -432,13 +429,13 @@ nosResult CopyBuffersAsync(nosCudaStreamObject stream, nosCudaBufferInfo* source
 		nosEngine.LogE("Invalid memory type for CUDA memcopy operation.");
 		return NOS_RESULT_FAILED;
 	}
-	if (source->CreateInfo.AllocationSize != destination->CreateInfo.AllocationSize)
+	if (source->AllocationSize != destination->AllocationSize)
 	{
 		nosEngine.LogW("nosCUDABuffers have size mismatch, trimming will be performed for copying.");
 	}
 
 	cudaError res = cudaSuccess;
-	size_t safeCopySize = std::min(source->CreateInfo.AllocationSize, destination->CreateInfo.BlockSize);
+	size_t safeCopySize = std::min(source->AllocationSize, destination->BlockSize);
 	cudaMemcpyKind kind{};
 	switch (source->MemoryType)
 	{
@@ -509,7 +506,7 @@ nosResult SignalExternalSemaphore(nosCudaStreamObject stream, nosCudaExternalSem
 	return NOS_RESULT_SUCCESS;
 }
 
-nosResult NOSAPI_CALL CreateBufferOnCuda(nosCudaBufferInfo* cudaBuffer, uint64_t size)
+static nosResult CreateBufferOnCudaInternal(nosCudaBufferInfo* cudaBuffer, uint64_t size)
 {
 	CHECK_CONTEXT_SWITCH();
 	uint64_t addr = NULL;
@@ -520,14 +517,17 @@ nosResult NOSAPI_CALL CreateBufferOnCuda(nosCudaBufferInfo* cudaBuffer, uint64_t
 	cudaBuffer->ShareInfo.CreateHandle = NULL;
 	cudaBuffer->ShareInfo.ReferenceCount = 0;
 	cudaBuffer->MemoryType = NOS_CUDA_MEMORY_TYPE_DEVICE;
-	cudaBuffer->CreateInfo.BlockSize = size;
-	cudaBuffer->CreateInfo.AllocationSize = size;
-	cudaBuffer->CreateInfo.IsImported = false;
-	ResManager.Add(addr, *cudaBuffer);
+	cudaBuffer->BlockSize = size;
+	cudaBuffer->AllocationSize = size;
+	cudaBuffer->Offset = 0;
+	cudaBuffer->IsImported = false;
+	cudaBuffer->ImportedCudaExternalMemory = 0;
+	cudaBuffer->ImportedExternalHandle = 0;
+	// ResManager tracks BufferObject instances, not raw buffer infos.
 	return NOS_RESULT_SUCCESS;
 }
 
-nosResult NOSAPI_CALL CreateShareableBufferOnCuda(nosCudaBufferInfo* cudaBuffer, uint64_t size)
+static nosResult CreateShareableBufferOnCudaInternal(nosCudaBufferInfo* cudaBuffer, uint64_t size)
 {
 	CHECK_CONTEXT_SWITCH();
 	CUdevice dev;
@@ -553,7 +553,7 @@ nosResult NOSAPI_CALL CreateShareableBufferOnCuda(nosCudaBufferInfo* cudaBuffer,
 	prop.type = CU_MEM_ALLOCATION_TYPE_PINNED;
 	prop.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
 	prop.location.id = (int)dev;
-	prop.win32HandleMetaData = Descriptor::SecurityDescriptor::GetDefaultSecurityDescriptor();
+	prop.win32HandleMetaData = SecurityDescriptor::GetDefaultSecurityDescriptor();
 	prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_WIN32;
 
 	size_t chunk_sz;
@@ -587,19 +587,23 @@ nosResult NOSAPI_CALL CreateShareableBufferOnCuda(nosCudaBufferInfo* cudaBuffer,
 	status = cuMemExportToShareableHandle((void*)&shareableHandle, allocHandle, CU_MEM_HANDLE_TYPE_WIN32, 0);
 	CHECK_CUDA_DRIVER_ERROR(status);
 
-	cudaBuffer->CreateInfo.BlockSize = aligned_size;
-	cudaBuffer->CreateInfo.AllocationSize = size;
+	cudaBuffer->BlockSize = aligned_size;
+	cudaBuffer->AllocationSize = size;
 	cudaBuffer->ShareInfo.CreateHandle = allocHandle;
 	cudaBuffer->ShareInfo.ShareableHandle = shareableHandle;
 	cudaBuffer->ShareInfo.ReferenceCount = 1;
 	cudaBuffer->Address = address;
 	cudaBuffer->MemoryType = NOS_CUDA_MEMORY_TYPE_DEVICE;
-	ResManager.Add(address, *cudaBuffer);
+	cudaBuffer->Offset = 0;
+	cudaBuffer->IsImported = false;
+	cudaBuffer->ImportedCudaExternalMemory = 0;
+	cudaBuffer->ImportedExternalHandle = 0;
+	// ResManager tracks BufferObject instances, not raw buffer infos.
 	return NOS_RESULT_SUCCESS;
 
 }
 
-nosResult NOSAPI_CALL CreateBufferOnManagedMemory(nosCudaBufferInfo* cudaBuffer, uint64_t size)
+static nosResult CreateBufferOnManagedMemoryInternal(nosCudaBufferInfo* cudaBuffer, uint64_t size)
 {
 	CHECK_CONTEXT_SWITCH();
 	uint64_t addr = NULL;
@@ -610,12 +614,18 @@ nosResult NOSAPI_CALL CreateBufferOnManagedMemory(nosCudaBufferInfo* cudaBuffer,
 	cudaBuffer->ShareInfo.CreateHandle = NULL;
 	cudaBuffer->ShareInfo.ReferenceCount = 0;
 	cudaBuffer->MemoryType = NOS_CUDA_MEMORY_TYPE_MANAGED;
-	ResManager.Add(addr, *cudaBuffer);
+	cudaBuffer->AllocationSize = size;
+	cudaBuffer->BlockSize = size;
+	cudaBuffer->Offset = 0;
+	cudaBuffer->IsImported = false;
+	cudaBuffer->ImportedCudaExternalMemory = 0;
+	cudaBuffer->ImportedExternalHandle = 0;
+	// ResManager tracks BufferObject instances, not raw buffer infos.
 
 	return NOS_RESULT_SUCCESS;
 }
 
-nosResult NOSAPI_CALL CreateBufferPinned(nosCudaBufferInfo* cudaBuffer, uint64_t size)
+static nosResult CreateBufferPinnedInternal(nosCudaBufferInfo* cudaBuffer, uint64_t size)
 {
 	CHECK_CONTEXT_SWITCH();
 	uint64_t addr = NULL;
@@ -626,7 +636,13 @@ nosResult NOSAPI_CALL CreateBufferPinned(nosCudaBufferInfo* cudaBuffer, uint64_t
 	cudaBuffer->ShareInfo.CreateHandle = NULL;
 	cudaBuffer->ShareInfo.ReferenceCount = 0;
 	cudaBuffer->MemoryType = NOS_CUDA_MEMORY_TYPE_HOST;
-	ResManager.Add(addr, *cudaBuffer);
+	cudaBuffer->AllocationSize = size;
+	cudaBuffer->BlockSize = size;
+	cudaBuffer->Offset = 0;
+	cudaBuffer->IsImported = false;
+	cudaBuffer->ImportedCudaExternalMemory = 0;
+	cudaBuffer->ImportedExternalHandle = 0;
+	// ResManager tracks BufferObject instances, not raw buffer infos.
 
 	return nosResult();
 }
@@ -634,49 +650,25 @@ nosResult NOSAPI_CALL CreateBufferPinned(nosCudaBufferInfo* cudaBuffer, uint64_t
 nosResult InitBuffer(void* source, uint64_t size, nosCudaMemoryType type, nosCudaBufferInfo* destination)
 {
 	destination->Address = reinterpret_cast<uint64_t>(source);
-	destination->CreateInfo.AllocationSize = size;
+	destination->AllocationSize = size;
+	destination->BlockSize = size;
+	destination->Offset = 0;
+	destination->IsImported = false;
+	destination->ImportedCudaExternalMemory = 0;
+	destination->ImportedExternalHandle = 0;
 	destination->ShareInfo.CreateHandle = NULL;
 	destination->ShareInfo.ReferenceCount = 0;
 	destination->ShareInfo.ShareableHandle = NULL;
 	destination->MemoryType = type;
-	ResManager.Add(destination->Address, *destination);
-
 	return NOS_RESULT_SUCCESS;
 }
 
-nosResult CreateBuffer(nosCudaBufferInfo* cudaBuffer, uint64_t size)
-{
-	void* data = malloc(size);
-
-	cudaBuffer->Address = reinterpret_cast<uint64_t>(data);
-	cudaBuffer->ShareInfo.ShareableHandle = NULL;
-	cudaBuffer->ShareInfo.CreateHandle = NULL;
-	cudaBuffer->ShareInfo.ReferenceCount = 0;
-	cudaBuffer->MemoryType = NOS_CUDA_MEMORY_TYPE_HOST;
-	cudaBuffer->CreateInfo.AllocationSize = size;
-	cudaBuffer->CreateInfo.BlockSize = size;
-	cudaBuffer->CreateInfo.IsImported = false;
-	ResManager.Add(cudaBuffer->Address, *cudaBuffer);
-
-	return NOS_RESULT_SUCCESS;
-}
-
-nosResult GetCudaBufferFromAddress(uint64_t address, nosCudaBufferInfo* outBuffer)
-{
-	void* res = ResManager.Get(address);
-	if (res == nullptr)
-		return NOS_RESULT_FAILED;
-	(*outBuffer) = *reinterpret_cast<nosCudaBufferInfo*>(res);
-
-	return NOS_RESULT_SUCCESS;
-}
-
-nosResult ImportExternalMemoryAsCudaBuffer(uint64_t Handle,
-                                           size_t BlockSize,
-                                           size_t AllocationSize,
-                                           size_t Offset,
-                                           nosCudaExternalMemoryHandleType handleType,
-                                           nosCudaBufferInfo* outBuffer)
+static nosResult ImportExternalMemoryAsCudaBufferInternal(uint64_t Handle,
+                                                         size_t BlockSize,
+                                                         size_t AllocationSize,
+                                                         size_t Offset,
+                                                         nosCudaExternalMemoryHandleType handleType,
+                                                         nosCudaBufferInfo* outBuffer)
 {
 	CHECK_CONTEXT_SWITCH();
 	//cuCtxSetCurrent(reinterpret_cast<CUcontext>(PrimaryContext));
@@ -723,19 +715,119 @@ nosResult ImportExternalMemoryAsCudaBuffer(uint64_t Handle,
 	//Clean resources in case of re-importing
 	//DestroyBuffer(outBuffer);
 
-	uint64_t outCudaPointerAddres = NULL;
 	outBuffer->Address = reinterpret_cast<uint64_t>(pointer);
-	outBuffer->CreateInfo.BlockSize = BlockSize;
-	outBuffer->CreateInfo.AllocationSize = AllocationSize;
-	outBuffer->CreateInfo.Offset = Offset;
-	outBuffer->CreateInfo.IsImported = true;
-	outBuffer->CreateInfo.ImportedInternalHandle = reinterpret_cast<uint64_t>(externalMemory);
-	outBuffer->CreateInfo.ImportedExternalHandle = Handle;
+	outBuffer->BlockSize = BlockSize;
+	outBuffer->AllocationSize = AllocationSize;
+	outBuffer->Offset = Offset;
+	outBuffer->IsImported = true;
+	outBuffer->ImportedCudaExternalMemory = reinterpret_cast<uint64_t>(externalMemory);
+	outBuffer->ImportedExternalHandle = Handle;
 	outBuffer->ShareInfo.CreateHandle = NULL;
 	outBuffer->ShareInfo.ShareableHandle = NULL;
 	outBuffer->ShareInfo.ReferenceCount = 0;
 	outBuffer->MemoryType = NOS_CUDA_MEMORY_TYPE_DEVICE;
-	ResManager.Add(outBuffer->Address, *outBuffer);
+	// ResManager tracks BufferObject instances, not raw buffer infos.
+	return NOS_RESULT_SUCCESS;
+}
+
+static nosResult CreateBufferResource(const nosCudaBufferCreateInfo& createInfo, nosCudaBufferInfo* info)
+{
+	CHECK_CONTEXT_SWITCH();
+	CHECK_VALID_ARGUMENT(info);
+	*info = {};
+
+	switch (createInfo.Type)
+	{
+	case NOS_CUDA_BUFFER_CREATION_TYPE_DEVICE:
+		return createInfo.Device.Export ? CreateShareableBufferOnCudaInternal(info, createInfo.Size)
+		                                : CreateBufferOnCudaInternal(info, createInfo.Size);
+	case NOS_CUDA_BUFFER_CREATION_TYPE_HOST_PAGE_LOCKED: {
+		auto res = CreateBufferPinnedInternal(info, createInfo.Size);
+		if (res == NOS_RESULT_SUCCESS)
+		{
+			info->AllocationSize = createInfo.Size;
+			info->BlockSize = createInfo.Size;
+			info->IsImported = false;
+		}
+		return res;
+	}
+	case NOS_CUDA_BUFFER_CREATION_TYPE_MANAGED: {
+		auto res = CreateBufferOnManagedMemoryInternal(info, createInfo.Size);
+		if (res == NOS_RESULT_SUCCESS)
+		{
+			info->AllocationSize = createInfo.Size;
+			info->BlockSize = createInfo.Size;
+			info->IsImported = false;
+		}
+		return res;
+	}
+	case NOS_CUDA_BUFFER_CREATION_TYPE_IMPORTED:
+		return ImportExternalMemoryAsCudaBufferInternal(createInfo.Imported.ExternalMemoryHandle,
+		                                                createInfo.Size,
+		                                                createInfo.Imported.AllocationSize,
+		                                                createInfo.Imported.Offset,
+		                                                createInfo.Imported.ExternalMemoryHandleType,
+		                                                info);
+	default:
+		return NOS_RESULT_INVALID_ARGUMENT;
+	}
+}
+
+nosResult CreateBuffer(nosCudaBufferCreateInfo* createInfo, nosObjectReference* outCudaBufferObject)
+{
+	CHECK_CONTEXT_SWITCH();
+	CHECK_VALID_ARGUMENT(createInfo);
+	CHECK_VALID_ARGUMENT(outCudaBufferObject);
+
+	auto res = BufferObject::Create(*createInfo);
+	if (auto* err = res.Error())
+		return *err;
+
+	auto* bufferObj = (*res).release();
+	auto serializedData = bufferObj->Serialize();
+	auto result = nosEngine.ObjectAPI->CreateObjectForForeignHandle(NSN_BufferTypeName,
+	                                                                bufferObj,
+	                                                                serializedData,
+	                                                                outCudaBufferObject);
+	if (result == NOS_RESULT_SUCCESS)
+		ResManager.Add(bufferObj->Info.Address, nos::ObjectRef::FromObjectId(outCudaBufferObject->Object));
+	return result;
+}
+
+nosResult ImportExternalMemoryAsCudaBuffer(nosCudaBufferImportInfo* importInfo,
+                                           uint64_t blockSize,
+                                           nosObjectReference* outCudaBufferObject)
+{
+	CHECK_CONTEXT_SWITCH();
+	CHECK_VALID_ARGUMENT(importInfo);
+	CHECK_VALID_ARGUMENT(outCudaBufferObject);
+	nosCudaBufferCreateInfo createInfo{};
+	createInfo.Type = NOS_CUDA_BUFFER_CREATION_TYPE_IMPORTED;
+	createInfo.Size = blockSize;
+	createInfo.Imported = *importInfo;
+	return CreateBuffer(&createInfo, outCudaBufferObject);
+}
+
+nosResult GetCudaBufferFromAddress(uint64_t address, nosObjectReference* outCudaBufferObject)
+{
+	CHECK_VALID_ARGUMENT(outCudaBufferObject);
+	auto res = ResManager.Get(address);
+	if (res == nullptr)
+		return NOS_RESULT_FAILED;
+	auto ref = nos::ObjectRef::FromObjectId(res->GetObjectId());
+	*outCudaBufferObject = ref.Release();
+
+	return NOS_RESULT_SUCCESS;
+}
+
+nosResult GetCudaBufferInfo(nosCudaBufferObject buffer, nosCudaBufferInfo* outBufferInfo)
+{
+	CHECK_CONTEXT_SWITCH();
+	CHECK_VALID_ARGUMENT(outBufferInfo);
+	auto* bufferObj = nos::GetForeignHandle<BufferObject>(buffer);
+	if (!bufferObj)
+		return NOS_RESULT_FAILED;
+	*outBufferInfo = bufferObj->Info;
 	return NOS_RESULT_SUCCESS;
 }
 
@@ -820,15 +912,15 @@ nosResult NOSAPI_CALL DestroyBuffer(nosCudaBufferInfo* cudaBuffer)
 	cudaError rtRes = cudaSuccess;
 	if (cudaBuffer->Address != NULL)
 	{
-		if (!cudaBuffer->CreateInfo.IsImported)
+		if (!cudaBuffer->IsImported)
 		{
 			if (cudaBuffer->ShareInfo.CreateHandle != NULL)
 			{
-				driverRes = cuMemUnmap(cudaBuffer->Address, cudaBuffer->CreateInfo.BlockSize);
+				driverRes = cuMemUnmap(cudaBuffer->Address, cudaBuffer->BlockSize);
 				CHECK_CUDA_DRIVER_ERROR(driverRes);
 				driverRes = cuMemRelease(cudaBuffer->ShareInfo.CreateHandle);
 				CHECK_CUDA_DRIVER_ERROR(driverRes);
-				driverRes = cuMemAddressFree(cudaBuffer->Address, cudaBuffer->CreateInfo.BlockSize);
+				driverRes = cuMemAddressFree(cudaBuffer->Address, cudaBuffer->BlockSize);
 				CHECK_CUDA_DRIVER_ERROR(driverRes);
 			}
 			else if (cudaBuffer->MemoryType == NOS_CUDA_MEMORY_TYPE_MANAGED || cudaBuffer->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE)
@@ -847,7 +939,7 @@ nosResult NOSAPI_CALL DestroyBuffer(nosCudaBufferInfo* cudaBuffer)
 			CHECK_CUDA_RT_ERROR(rtRes);
 
 			rtRes = cudaDestroyExternalMemory(
-				reinterpret_cast<cudaExternalMemory_t>(cudaBuffer->CreateInfo.ImportedInternalHandle));
+				reinterpret_cast<cudaExternalMemory_t>(cudaBuffer->ImportedCudaExternalMemory));
 			CHECK_CUDA_RT_ERROR(rtRes);
 		}
 	}
@@ -921,6 +1013,63 @@ Result<std::unique_ptr<StreamObject>, nosResult> StreamObject::Create()
 
 EngineBuffer StreamObject::Serialize() const
 {
+	return EngineBuffer::CopyFrom(nos::Buffer::From(nos::sys::cuda::TStream{}));
+}
+
+BufferObject::~BufferObject()
+{
+	CHECK_CONTEXT_SWITCH();
+	if (Info.Address != 0)
+	{
+		ResManager.Remove(Info.Address);
+		DestroyBuffer(&Info);
+	}
+}
+
+Result<std::unique_ptr<BufferObject>, nosResult> BufferObject::Create(const nosCudaBufferCreateInfo& createInfo)
+{
+	CHECK_CONTEXT_SWITCH();
+	auto obj = std::make_unique<BufferObject>();
+	nosCudaBufferInfo info{};
+	nosResult res = CreateBufferResource(createInfo, &info);
+
+	if (res != NOS_RESULT_SUCCESS)
+		return res;
+
+	obj->Info = info;
+	if (createInfo.Type == NOS_CUDA_BUFFER_CREATION_TYPE_IMPORTED)
+	{
+		obj->ExternalMemoryHandleType = createInfo.Imported.ExternalMemoryHandleType;
+		obj->HasExternalMemoryHandleType = true;
+	}
+	else if (createInfo.Type == NOS_CUDA_BUFFER_CREATION_TYPE_DEVICE && createInfo.Device.Export)
+	{
+		obj->ExternalMemoryHandleType = NOS_CUDA_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUEWIN32;
+		obj->HasExternalMemoryHandleType = true;
+	}
+	obj->ExternalMemoryPid = static_cast<uint64_t>(GetCurrentProcessId());
+	return obj;
+}
+
+EngineBuffer BufferObject::Serialize() const
+{
+	nos::sys::cuda::Buffer buffer{};
+	buffer.mutate_handle(Info.Address);
+	buffer.mutate_offset(Info.Offset);
+	buffer.mutate_size_in_bytes(Info.AllocationSize);
+	buffer.mutate_element_type(ElementType);
+
+	if (Info.IsImported || Info.ShareInfo.ShareableHandle != 0)
+	{
+		auto& extMem = buffer.mutable_external_memory();
+		extMem.mutate_allocation_size(Info.AllocationSize);
+		extMem.mutate_handle(Info.IsImported ? Info.ImportedExternalHandle
+		                                                : Info.ShareInfo.ShareableHandle);
+		extMem.mutate_pid(ExternalMemoryPid);
+		if (HasExternalMemoryHandleType)
+			extMem.mutate_handle_type(static_cast<uint32_t>(ExternalMemoryHandleType));
+	}
+	return EngineBuffer::CopyFrom(nos::Buffer::From(buffer));
 }
 
 namespace type
@@ -956,6 +1105,78 @@ nosResult InitializeStreamPinObject(nosFbShowAs showAs, nosUUID pinId, nosBuffer
 }
 
 void OnStreamInputPinDisconnected(const nosOnInputPinDisconnectedParams* params)
+{
+	nosEngine.SetPinObject(params->PinId, NOS_NULL_OBJECT);
+}
+
+nosResult ConstructBufferObject(nosBuffer buffer, nosForeignHandle* outForeignHandle, nosBuffer* outSerializedData)
+{
+	CHECK_CONTEXT_SWITCH();
+	CHECK_VALID_ARGUMENT(outForeignHandle);
+	CHECK_VALID_ARGUMENT(outSerializedData);
+
+	auto* fbBuf = ObjectData<nos::sys::cuda::Buffer>::Interpret(buffer);
+	if (!fbBuf)
+		return NOS_RESULT_INVALID_ARGUMENT;
+
+	nosCudaBufferCreateInfo createInfo{};
+	const auto& extMem = fbBuf->external_memory();
+	const bool hasExternalMemory = extMem.handle() != 0;
+	if (hasExternalMemory)
+	{
+		createInfo.Type = NOS_CUDA_BUFFER_CREATION_TYPE_IMPORTED;
+		createInfo.Size = fbBuf->size_in_bytes();
+		createInfo.Imported.ExternalMemoryHandle = extMem.handle();
+		createInfo.Imported.ExternalMemoryHandleType =
+			static_cast<nosCudaExternalMemoryHandleType>(extMem.handle_type());
+		createInfo.Imported.AllocationSize = extMem.allocation_size();
+		createInfo.Imported.Offset = fbBuf->offset();
+	}
+	else
+	{
+		createInfo.Type = NOS_CUDA_BUFFER_CREATION_TYPE_DEVICE;
+		createInfo.Size = fbBuf->size_in_bytes();
+		createInfo.Device.Export = NOS_FALSE;
+	}
+ 
+	auto res = BufferObject::Create(createInfo);
+	if (auto* err = res.Error())
+		return *err;
+
+	auto* bufferObj = (*res).release();
+	bufferObj->ElementType = fbBuf->element_type();
+	bufferObj->ExternalMemoryPid = extMem.pid();
+	if (hasExternalMemory)
+		bufferObj->HasExternalMemoryHandleType = true;
+
+	*outForeignHandle = bufferObj;
+	*outSerializedData = bufferObj->Serialize().Release();
+	return NOS_RESULT_SUCCESS;
+}
+
+void ReleaseBufferObject(nosForeignHandle foreignHandle)
+{
+	auto bufferObj = static_cast<BufferObject*>(foreignHandle);
+	delete bufferObj;
+}
+
+nosResult InitializeBufferPinObject(nosFbShowAs showAs, nosUUID pinId, nosBuffer constructorBuffer)
+{
+	if (showAs == fb::ShowAs::OUTPUT_PIN)
+	{
+		nos::ObjectRef obj{};
+		nosEngine.ObjectAPI->CreateForeignObject(NSN_BufferTypeName, constructorBuffer, &obj.GetStorage());
+		if (auto* fbBuf = ObjectData<nos::sys::cuda::Buffer>::Interpret(constructorBuffer))
+		{
+			if (fbBuf->handle() != 0)
+				ResManager.Add(fbBuf->handle(), nos::ObjectRef::FromObjectId(obj.GetObjectId()));
+		}
+		return nosEngine.SetPinObject(pinId, obj);
+	}
+	return NOS_RESULT_SUCCESS;
+}
+
+void OnBufferInputPinDisconnected(const nosOnInputPinDisconnectedParams* params)
 {
 	nosEngine.SetPinObject(params->PinId, NOS_NULL_OBJECT);
 }

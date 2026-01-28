@@ -2,14 +2,14 @@
   "info": {
     "id": {
       "name": "nos.cuda",
-      "version": "1.11.0"
+      "version": "2.0.0"
     },
     "description": "Nodos CUDA Nodes",
     "display_name": "nosCUDA",
     "dependencies": [
       {
         "name": "nos.sys.cuda",
-        "version": "3.0.0"
+        "version": "3.0"
       }
     ]
   },

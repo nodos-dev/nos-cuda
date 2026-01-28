@@ -1,9 +1,5 @@
-#include <Nodos/PluginAPI.h>
-#include <Builtins_generated.h>
 #include <Nodos/Plugin.hpp>
-#include <AppService_generated.h>
-#include <AppEvents_generated.h>
-#include "nosCUDASubsystem/nosCUDASubsystem.h"
+#include <nosSysCuda/nosCUDASubsystem.h>
 
 NOS_INIT();
 NOS_CUDA_INIT();
@@ -12,6 +8,8 @@ NOS_BEGIN_IMPORT_DEPS()
 	NOS_CUDA_IMPORT()
 NOS_END_IMPORT_DEPS()
 
+namespace nos::cuda
+{
 void RegisterCreateStream(nosNodeFunctions* outFunctions);
 
 struct CUDANodesPluginFunctions : nos::PluginFunctions
@@ -29,3 +27,4 @@ struct CUDANodesPluginFunctions : nos::PluginFunctions
 };
 
 NOS_EXPORT_PLUGIN_FUNCTIONS(CUDANodesPluginFunctions)
+}

@@ -28,10 +28,18 @@ nosResult NOSAPI_CALL ExportObjectTypeFunctions(size_t* outCount, nosObjectTypeI
 		};
 		stream->PinInterface = {
 			.InitializeObject = type::InitializeStreamPinObject,
-			.OnInputPinDisconnected = type::OnStreamInputPinDisconnected
+			.OnInputPinDisconnected = type::OnStreamInputPinDisconnected,
 		};
 		auto buffer = outList[1];
-		
+		buffer->TypeName = NSN_BufferTypeName;
+		buffer->Functions = {
+			.Construct = type::ConstructBufferObject,
+			.Release = type::ReleaseBufferObject,
+		};
+		buffer->PinInterface = {
+			.InitializeObject = type::InitializeBufferPinObject,
+			.OnInputPinDisconnected = type::OnBufferInputPinDisconnected,
+		};
 	}
 	return NOS_RESULT_SUCCESS;
 }

@@ -2,7 +2,7 @@
     "info": {
         "id": {
             "name": "nos.cuda.interop",
-            "version": "2.11.0"
+            "version": "3.0"
         },
         "description": "CUDA interoperability plugin",
       "display_name": "CUDA Interop",

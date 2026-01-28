@@ -1,73 +1,75 @@
 #include <Nodos/Plugin.hpp>
 #include <nosSysVulkan/Helpers.hpp>
 #include <nosSysVulkan/Types_generated.h>
-#include <nosSysCuda/nosCUDASubsystem.h>
+#include <nosSysCuda/Helpers.hpp>
 #include <nosSysCuda/Types_generated.h>
 #include "InteropCommon.h"
 #include "InteropNames.h"
 
+namespace nos::cuda::interop
+{
+static std::optional<nosCudaExternalMemoryHandleType> MapExternalHandleType(nosExternalMemoryHandleType handleType)
+{
+	switch (handleType)
+	{
+	case NOS_EXTERNAL_MEMORY_HANDLE_TYPE_WIN32:
+		return NOS_CUDA_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUEWIN32;
+	case NOS_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_RESOURCE:
+		return NOS_CUDA_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12RESOURCE;
+	case NOS_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE:
+		return NOS_CUDA_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11RESOURCE;
+	default:
+		return std::nullopt;
+	}
+}
+
 struct VulkanBufferToCUDABuffer : nos::NodeContext
 {
-	BufferPin VulkanBufferPinProxy = {};
-	nosCudaBufferInfo CUDABuffer = {};
+	nos::ObjectRef OutputBuffer{};
+	uint64_t LastExternalHandle = 0;
 
 	void OnPinObjectChanged(nos::Name pinName, nos::uuid const& pinId, nosObjectId newHandle) override
 	{
-		if (pinName == NSN_Input)
+		if (pinName != NSN_InputBuffer)
+			return;
+
+		auto resourceInfo = nos::sys::vulkan::GetResourceInfo(newHandle);
+		auto extMemInfo = nos::sys::vulkan::GetExternalMemoryInfo(newHandle);
+		if (!resourceInfo || !extMemInfo)
+			return;
+		if (resourceInfo->Type != NOS_RESOURCE_TYPE_BUFFER)
+			return;
+
+		if (extMemInfo->Handle == LastExternalHandle && OutputBuffer)
+			return;
+
+		auto mappedHandleType = MapExternalHandleType(extMemInfo->HandleType);
+		if (!mappedHandleType)
 		{
-			nosResourceInfo resourceInfo = {};
-			nosExternalMemoryInfo extMemInfo = {};
-			if (NOS_RESULT_SUCCESS == nosVulkan->GetResourceInfo(newHandle, &resourceInfo, &extMemInfo))
-			{
-				if (extMemInfo.Handle == CUDABuffer.CreateInfo.ImportedExternalHandle)
-				{
-					// Resource is already imported
-					return;
-				}
-				nosResult res = nosCuda->ImportExternalMemoryAsCudaBuffer(extMemInfo.Handle, extMemInfo.AllocationSize, 
-					resourceInfo.Buffer.Size, extMemInfo.Offset, NOS_CUDA_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUEWIN32, &CUDABuffer);
-				if (res != NOS_RESULT_SUCCESS)
-				{
-					nosEngine.LogE("Import from Vulkan to CUDA failed!");
-				}
-			}
-		}
-	}
-
-	nosResult ExecuteNode(nosNodeExecuteParams* params) override
-	{
-		auto pinIds = nos::GetPinIds(params);
-		auto pinValues = nos::GetPinValues(params);
-		auto VulkanBuf = (nos::sys::vulkan::Buffer*)(pinValues[NSN_InputBuffer]);
-
-		UpdateOutputPin(VulkanBuf);
-
-		return NOS_RESULT_SUCCESS;
-	}
-
-	void UpdateOutputPin(const nos::sys::vulkan::Buffer* VulkanBuf) {
-
-		if (VulkanBufferPinProxy.Address == VulkanBuf->handle()) {
+			nosEngine.LogE("Unsupported external memory handle type for Vulkan->CUDA buffer import.");
 			return;
 		}
-		VulkanBufferPinProxy.Address = VulkanBuf->handle();
 
-		nos::sys::cuda::Buffer buffer;
-		buffer.mutate_element_type((nos::sys::cuda::BufferElementType)VulkanBuf->element_type());
-		buffer.mutate_handle(CUDABuffer.Address);
-		buffer.mutate_size_in_bytes(VulkanBuf->size_in_bytes());
-		buffer.mutate_offset(VulkanBuf->offset());
-		buffer.mutable_external_memory().mutate_allocation_size(CUDABuffer.CreateInfo.AllocationSize);
-		buffer.mutable_external_memory().mutate_handle(CUDABuffer.ShareInfo.ShareableHandle);
-		//buffer.mutable_external_memory().mutate_handle_type(CUDABuffer.ShareInfo.HandleType);
-		buffer.mutable_external_memory().mutate_pid(getpid());
-		
+		nosCudaBufferImportInfo importInfo{};
+		importInfo.AllocationSize = resourceInfo->Buffer.Size;
+		importInfo.Offset = extMemInfo->Offset;
+		importInfo.ExternalMemoryHandle = extMemInfo->Handle;
+		importInfo.ExternalMemoryHandleType = *mappedHandleType;
 
-		auto bufPin = nos::Buffer::From(buffer);
-		nosEngine.SetPinValueDirect(OutputBufferUUID, bufPin);
-		return;
+		nos::ObjectRef newCudaBuffer{};
+		nosResult res = nosCuda->ImportExternalMemoryAsCudaBuffer(&importInfo,
+		                                                         extMemInfo->AllocationSize,
+		                                                         &newCudaBuffer.GetStorage());
+		if (res != NOS_RESULT_SUCCESS)
+		{
+			nosEngine.LogE("Import from Vulkan to CUDA failed.");
+			return;
+		}
+
+		OutputBuffer = std::move(newCudaBuffer);
+		LastExternalHandle = extMemInfo->Handle;
+		SetPinObject(NSN_OutputBuffer, OutputBuffer);
 	}
-
 };
 
 nosResult RegisterVulkanBufferToCUDABuffer(nosNodeFunctions* fn)
@@ -75,4 +77,4 @@ nosResult RegisterVulkanBufferToCUDABuffer(nosNodeFunctions* fn)
 	NOS_BIND_NODE_CLASS(NSN_VulkanBufferToCUDABuffer, VulkanBufferToCUDABuffer, fn);
 	return NOS_RESULT_SUCCESS;
 }
-
+} // namespace nos::cuda::interop

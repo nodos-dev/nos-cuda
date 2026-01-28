@@ -4,22 +4,14 @@
 #include "InteropCommon.h"
 #include "InteropNames.h"
 #include "LinearToSRGB.frag.spv.dat"
+
+namespace nos::cuda::interop
+{
 std::pair<nos::Name, std::vector<uint8_t>> LinearToSRGBShader;
 
 struct LinearToSRGB : nos::NodeContext
 {
 	nos::ForeignObjectRef Output = {};
-	nos::uuid OutputUUID = {};
-	nosResult OnCreate(nosFbNodePtr node) override
-	{
-		for (const auto& pin : *node->pins()) {
-			const char* currentPinName = pin->name()->c_str();
-			if (NSN_Output.Compare(pin->name()->c_str()) == 0) {
-				OutputUUID = *pin->id();
-			}
-		}
-		return NOS_RESULT_SUCCESS;
-	}
 	void OnPinObjectChanged(nos::Name pinName, nos::uuid const& pinId, nosObjectId newHandle) override
 	{
 		if (pinName == NSN_Input)
@@ -67,7 +59,7 @@ struct LinearToSRGB : nos::NodeContext
 
 		Output = nos::sys::vulkan::CreateResource(in, "LinearToSRGB Output");
 		if (Output)
-			SetPinObject(OutputUUID, Output);
+			SetPinObject(NSN_Output, Output);
 	}
 
 };
@@ -90,4 +82,4 @@ nosResult RegisterLinearToSRGB(nosNodeFunctions* fn)
 	nosPassInfo pass = { .Key = NSN_LinearToSRGB_Pass, .Shader = NSN_LinearToSRGB_Shader, .MultiSample = 1 };
 	return nosVulkan->RegisterPasses(1, &pass);
 }
-
+}

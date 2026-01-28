@@ -16,6 +16,8 @@ NOS_BEGIN_IMPORT_DEPS()
 	NOS_CUDA_IMPORT()
 NOS_END_IMPORT_DEPS()
 
+namespace nos::cuda::interop
+{
 nosResult RegisterVulkanBufferToCUDABuffer(nosNodeFunctions* outFunctions);
 nosResult RegisterLinearToSRGB(nosNodeFunctions* outFunctions);
 
@@ -34,3 +36,4 @@ struct InteropPluginFunctions : nos::PluginFunctions
 };
 
 NOS_EXPORT_PLUGIN_FUNCTIONS(InteropPluginFunctions)
+}

@@ -1,13 +1,12 @@
 #pragma once
-#include "nosCUDASubsystem/nosCUDASubsystem.h"
-#include "CUDASubsysCommon.h"
+#include "nosSysCuda/nosCudaSubsystem.h"
+#include "Common.hpp"
 #include <Nodos/Plugin.hpp>
 namespace nos::sys::cuda 
 {
-	extern UtilsProxy::ResourceManagerProxy<nosCUDABufferInfo> ResManager;
-	extern UtilsProxy::ResourceManagerProxy<nosCUDAStream> StreamManager;
-	extern uint32_t CurrentDevice;
-	extern void* PrimaryContext;
-	extern void* ActiveContext;
-	extern std::unordered_map<nos::Name, void*> IDContextMap;
+extern ResourceManager<nos::ObjectRef> ResManager;
+extern uint32_t CurrentDevice;
+extern void* PrimaryContext;
+extern void* ActiveContext;
+extern std::unordered_map<nos::Name, void*> IDContextMap;
 }
