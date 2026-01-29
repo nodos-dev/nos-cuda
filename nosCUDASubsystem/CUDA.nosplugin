@@ -13,7 +13,6 @@
       }
     ]
   },
-  "binary_path": "./Binaries/nosCUDASubsystem",
   "sdk_version": "41.0",
   "schema_version": "1.4-v1"
 }

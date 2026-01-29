@@ -18,7 +18,6 @@
       ]
 
     },
-    "binary_path": "Binaries/nosInterop",
   "sdk_version": "41.0",
   "schema_version": "1.4-v1"
 }

@@ -16,8 +16,8 @@ Coding conventions
 - `nosCudaStreamObject` is a `nosObjectId` (object reference semantics apply).
 
 Build/test
-- Generate: `./nodos dev gen -p ProjectAI --plugin-dirs "Module/dev/ai"`
-- Build: `./nodos dev build -p ProjectAI`
+- Generate: `./nodos dev gen -p <path to generated project> --plugin-dirs "<path to repo>"`
+- Build: `./nodos dev build -p <path to generated project>`
 - nvcc PTX steps require `cl.exe` in PATH.
 
 Versioning
