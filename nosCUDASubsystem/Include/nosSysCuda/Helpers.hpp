@@ -58,4 +58,15 @@ inline std::optional<nosCudaBufferInfo> GetBufferInfo(TypedObjectRef<Buffer> con
 {
 	return GetBufferInfo(buffer.GetObjectId(), cuda);
 }
+
+template <internal::CudaOrVoid cudaType = void>
+inline Result<ObjectRef, nosResult> CreateStream(cudaType* cuda = nullptr)
+{
+	auto cu = internal::GetCudaSubsystem(cuda);
+	ObjectRef ref{};
+	auto res = cu->CreateStream(&ref.GetStorage());
+	if (res != NOS_RESULT_SUCCESS)
+		return Error(res);
+	return Ok(ref);
+}
 } // namespace nos::sys::cuda

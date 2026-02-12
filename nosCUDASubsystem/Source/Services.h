@@ -32,7 +32,7 @@
 		return NOS_RESULT_FAILED; \
 	}
 #define CHECK_VALID_ARGUMENT(ptrArg)	\
-	if (ptrArg == nullptr) {	\
+	if (!ptrArg) {	\
 		return NOS_RESULT_INVALID_ARGUMENT; \
 	}
 #define CHECK_IS_SUPPORTED(result, propertyName)	\
@@ -119,19 +119,17 @@ nosResult QueryCudaEvent(nosCudaEvent waitEvent, nosCudaEventStatus* eventStatus
 nosResult GetCudaEventElapsedTime(nosCudaStreamObject stream, nosCudaEvent theEvent, float* elapsedTime);
 //Get elapsed time between now and the measureEvent
 
-nosResult CopyBuffers(nosCudaBufferInfo* source, nosCudaBufferInfo* destination);
-nosResult CopyBuffersAsync(nosCudaStreamObject stream, nosCudaBufferInfo* source, nosCudaBufferInfo* destination);
+nosResult CopyBuffer(nosCudaBufferObject srcObj, nosCudaBufferObject dstObj);
+nosResult CopyFromHost(void* source, nosCudaBufferObject dstObj, uint64_t size);
+nosResult CopyBufferAsync(nosCudaStreamObject stream, nosCudaBufferObject srcObj, nosCudaBufferObject dstObj);
 nosResult AddCallback(nosCudaStreamObject stream, nosCudaCallbackFunction callback, void* callbackData);
 nosResult WaitExternalSemaphore(nosCudaStreamObject stream, nosCudaExternalSemaphore extSem, uint64_t value);
 nosResult SignalExternalSemaphore(nosCudaStreamObject stream, nosCudaExternalSemaphore extSem, uint64_t value);
 
-nosResult InitBuffer(void* source, uint64_t size, nosCudaMemoryType type, nosCudaBufferInfo* destination);
 nosResult CreateBuffer(nosCudaBufferCreateInfo* createInfo, nosObjectReference* outCudaBufferObject);
 nosResult GetCudaBufferFromAddress(uint64_t address, nosObjectReference* outCudaBufferObject);
 nosResult GetCudaBufferInfo(nosCudaBufferObject buffer, nosCudaBufferInfo* outBufferInfo);
 //In case you lost the cuda buffer (hope not)
-
-nosResult DestroyBuffer(nosCudaBufferInfo* cudaBuffer); //Allocates in Unified Memory Space
 
 nosResult ImportExternalMemoryAsCudaBuffer(nosCudaBufferImportInfo* importInfo,
                                            uint64_t blockSize,

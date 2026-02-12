@@ -431,20 +431,15 @@ typedef struct nosCudaSubsystem
 
 	/// Create CUDA Buffer
 	nosResult (NOSAPI_CALL* CreateBuffer)(nosCudaBufferCreateInfo* createInfo, nosObjectReference* outCudaBufferObject);
-	nosResult (NOSAPI_CALL*InitBuffer)(void* source,
-	                                   uint64_t size,
-	                                   nosCudaMemoryType type,
-	                                   nosCudaBufferInfo* destination);
 	//               Wraps buffer to an externally created memory
-	nosResult (NOSAPI_CALL*CopyBuffers)(nosCudaBufferInfo* source, nosCudaBufferInfo* destination);
-	nosResult (NOSAPI_CALL*CopyBuffersAsync)(nosCudaStreamObject stream,
-	                                         nosCudaBufferInfo* source,
-	                                         nosCudaBufferInfo* destination);
+	nosResult (NOSAPI_CALL*CopyBuffer)(nosCudaBufferObject source, nosCudaBufferObject destination);
+	nosResult (NOSAPI_CALL*CopyFromHost)(void* source, nosCudaBufferObject destination, uint64_t size);
+	nosResult (NOSAPI_CALL*CopyBufferAsync)(nosCudaStreamObject stream,
+	                                        nosCudaBufferObject source,
+	                                        nosCudaBufferObject destination);
 	nosResult (NOSAPI_CALL*GetCudaBufferFromAddress)(uint64_t address, nosObjectReference* outCudaBufferObject);
 	nosResult (NOSAPI_CALL*GetCudaBufferInfo)(nosCudaBufferObject buffer, nosCudaBufferInfo* outBufferInfo);
 	//In case you lost the cuda buffer (hope not)
-
-	nosResult (NOSAPI_CALL*DestroyBuffer)(nosCudaBufferInfo* cudaBuffer); //Free the memory
 
 	//Interop
 	nosResult (NOSAPI_CALL*ImportExternalMemoryAsCudaBuffer)(nosCudaBufferImportInfo* importInfo,

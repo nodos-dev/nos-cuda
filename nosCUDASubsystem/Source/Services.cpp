@@ -52,12 +52,11 @@ void Bind(nosCudaSubsystem* subsys)
 	subsys->AddCallback = AddCallback;
 
 	subsys->CreateBuffer = CreateBuffer;
-	subsys->CopyBuffers = CopyBuffers;
-	subsys->CopyBuffersAsync = CopyBuffersAsync;
+	subsys->CopyBuffer = CopyBuffer;
+	subsys->CopyFromHost = CopyFromHost;
+	subsys->CopyBufferAsync = CopyBufferAsync;
 	subsys->GetCudaBufferFromAddress = GetCudaBufferFromAddress;
 	subsys->GetCudaBufferInfo = GetCudaBufferInfo;
-
-	subsys->DestroyBuffer = DestroyBuffer;
 
 	subsys->ImportExternalSemaphore = ImportExternalSemaphore;
 	subsys->ImportExternalMemoryAsCudaBuffer = ImportExternalMemoryAsCudaBuffer;
@@ -375,87 +374,131 @@ nosResult NOSAPI_CALL GetCudaEventElapsedTime(nosCudaStreamObject stream, nosCud
 	return NOS_RESULT_SUCCESS;
 }
 
-nosResult NOSAPI_CALL CopyBuffers(nosCudaBufferInfo* source, nosCudaBufferInfo* destination)
+nosResult CopyCudaMemory(void* sourceAddress, void* dstAddress, uint64_t safeCopySize, nosCudaMemoryType srcMemType, nosCudaMemoryType dstMemType)
 {
-	CHECK_CONTEXT_SWITCH();
-	CHECK_VALID_ARGUMENT(source);
-	CHECK_VALID_ARGUMENT(destination);
-
-	if (source->MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED || destination->MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED)
-	{
-		nosEngine.LogE("Invalid memory type for CUDA memcopy operation.");
-		return NOS_RESULT_FAILED;
-	}
-	if (source->AllocationSize != destination->AllocationSize)
-	{
-		nosEngine.LogW("nosCUDABuffers have size mismatch, trimming will be performed for copying.");
-	}
-
-	cudaError res = cudaSuccess;
-	size_t safeCopySize = std::min(source->AllocationSize, destination->BlockSize);
 	cudaMemcpyKind kind{};
-	switch (source->MemoryType)
+	switch (srcMemType)
 	{
 	case NOS_CUDA_MEMORY_TYPE_HOST: {
-		kind = destination->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyDeviceToHost;
+		kind = dstMemType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyHostToHost;
 		break;
 	}
 	case NOS_CUDA_MEMORY_TYPE_DEVICE: {
-		kind = destination->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost;
+		kind = dstMemType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost;
 		break;
 	}
 	case NOS_CUDA_MEMORY_TYPE_MANAGED: {
-		kind = destination->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyHostToHost;
+		kind = dstMemType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyHostToHost;
 		break;
 	}
 	default: return NOS_RESULT_INVALID_ARGUMENT;
 	}
-	res = cudaMemcpy(reinterpret_cast<void*>(destination->Address),
-					 reinterpret_cast<void*>(source->Address),
-					 safeCopySize,
-					 kind);
+	cudaError res = cudaMemcpy(dstAddress, sourceAddress, safeCopySize, kind);
 	CHECK_CUDA_RT_ERROR(res);
 	return NOS_RESULT_SUCCESS;
 }
 
-nosResult CopyBuffersAsync(nosCudaStreamObject stream, nosCudaBufferInfo* source, nosCudaBufferInfo* destination)
+nosResult NOSAPI_CALL CopyBuffer(nosCudaBufferObject srcObj, nosCudaBufferObject dstObj)
 {
 	CHECK_CONTEXT_SWITCH();
-	CHECK_VALID_ARGUMENT(source);
-	CHECK_VALID_ARGUMENT(destination);
+	CHECK_VALID_ARGUMENT(srcObj);
+	CHECK_VALID_ARGUMENT(dstObj);
+	
+	auto srcBuf = nos::GetForeignHandle<BufferObject>(srcObj);
+	auto dstBuf = nos::GetForeignHandle<BufferObject>(dstObj);
 
-	if (source->MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED || destination->MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED)
+	auto& source = srcBuf->Info;
+	auto& destination = dstBuf->Info;
+	
+	if (source.MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED || destination.MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED)
 	{
 		nosEngine.LogE("Invalid memory type for CUDA memcopy operation.");
 		return NOS_RESULT_FAILED;
 	}
-	if (source->AllocationSize != destination->AllocationSize)
+	if (source.AllocationSize != destination.AllocationSize)
+	{
+		nosEngine.LogW("nosCUDABuffers have size mismatch, trimming will be performed for copying.");
+	}
+
+	size_t safeCopySize = std::min(source.AllocationSize, destination.BlockSize);
+	return CopyCudaMemory(reinterpret_cast<void*>(source.Address),
+	                      reinterpret_cast<void*>(destination.Address),
+	                      safeCopySize,
+	                      source.MemoryType,
+	                      destination.MemoryType);
+}
+
+nosResult NOSAPI_CALL CopyFromHost(void* source, nosCudaBufferObject dstObj, uint64_t size)
+{
+	CHECK_CONTEXT_SWITCH();
+	CHECK_VALID_ARGUMENT(source);
+	CHECK_VALID_ARGUMENT(dstObj);
+
+	auto dstBuf = nos::GetForeignHandle<BufferObject>(dstObj);
+	auto& destination = dstBuf->Info;
+
+	if (destination.MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED)
+	{
+		nosEngine.LogE("Invalid memory type for CUDA memcopy operation.");
+		return NOS_RESULT_FAILED;
+	}
+	if (size > destination.BlockSize)
+	{
+		nosEngine.LogW(
+			"Copy size is larger than destination buffer block size, trimming will be performed for copying.");
+	}
+
+	return CopyCudaMemory(source,
+	                      reinterpret_cast<void*>(destination.Address),
+	                      std::min(size, destination.BlockSize),
+	                      NOS_CUDA_MEMORY_TYPE_HOST,
+	                      destination.MemoryType);
+}
+
+nosResult CopyBufferAsync(nosCudaStreamObject stream, nosCudaBufferObject srcObj, nosCudaBufferObject dstObj)
+{
+	CHECK_CONTEXT_SWITCH();
+	CHECK_VALID_ARGUMENT(srcObj);
+	CHECK_VALID_ARGUMENT(dstObj);
+	
+	auto srcBuf = nos::GetForeignHandle<BufferObject>(srcObj);
+	auto dstBuf = nos::GetForeignHandle<BufferObject>(dstObj);
+
+	auto& source = srcBuf->Info;
+	auto& destination = dstBuf->Info;
+
+	if (source.MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED || destination.MemoryType == NOS_CUDA_MEMORY_TYPE_UNREGISTERED)
+	{
+		nosEngine.LogE("Invalid memory type for CUDA memcopy operation.");
+		return NOS_RESULT_FAILED;
+	}
+	if (source.AllocationSize != destination.AllocationSize)
 	{
 		nosEngine.LogW("nosCUDABuffers have size mismatch, trimming will be performed for copying.");
 	}
 
 	cudaError res = cudaSuccess;
-	size_t safeCopySize = std::min(source->AllocationSize, destination->BlockSize);
+	size_t safeCopySize = std::min(source.AllocationSize, destination.BlockSize);
 	cudaMemcpyKind kind{};
-	switch (source->MemoryType)
+	switch (source.MemoryType)
 	{
 	case NOS_CUDA_MEMORY_TYPE_HOST: {
-		kind = destination->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyHostToHost;
+		kind = destination.MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyHostToHost;
 		break;
 	}
 	case NOS_CUDA_MEMORY_TYPE_DEVICE: {
-		kind = destination->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost;
+		kind = destination.MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyDeviceToDevice : cudaMemcpyDeviceToHost;
 		break;
 	}
 	case NOS_CUDA_MEMORY_TYPE_MANAGED: {
-		kind = destination->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyHostToHost;
+		kind = destination.MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE ? cudaMemcpyHostToDevice : cudaMemcpyHostToHost;
 		break;
 	}
 	default: return NOS_RESULT_INVALID_ARGUMENT;
 	}
 	auto streamObject = nos::GetForeignHandle<StreamObject>(stream);
-	res = cudaMemcpyAsync(reinterpret_cast<void*>(destination->Address),
-						  reinterpret_cast<void*>(source->Address),
+	res = cudaMemcpyAsync(reinterpret_cast<void*>(destination.Address),
+						  reinterpret_cast<void*>(source.Address),
 						  safeCopySize,
 						  kind,
 						  streamObject->Handle);
@@ -645,22 +688,6 @@ static nosResult CreateBufferPinnedInternal(nosCudaBufferInfo* cudaBuffer, uint6
 	// ResManager tracks BufferObject instances, not raw buffer infos.
 
 	return nosResult();
-}
-
-nosResult InitBuffer(void* source, uint64_t size, nosCudaMemoryType type, nosCudaBufferInfo* destination)
-{
-	destination->Address = reinterpret_cast<uint64_t>(source);
-	destination->AllocationSize = size;
-	destination->BlockSize = size;
-	destination->Offset = 0;
-	destination->IsImported = false;
-	destination->ImportedCudaExternalMemory = 0;
-	destination->ImportedExternalHandle = 0;
-	destination->ShareInfo.CreateHandle = NULL;
-	destination->ShareInfo.ReferenceCount = 0;
-	destination->ShareInfo.ShareableHandle = NULL;
-	destination->MemoryType = type;
-	return NOS_RESULT_SUCCESS;
 }
 
 static nosResult ImportExternalMemoryAsCudaBufferInternal(uint64_t Handle,
@@ -902,7 +929,7 @@ nosResult DestroyCuRandState(nosCudaRandState* state)
 	return NOS_RESULT_SUCCESS;
 }
 
-nosResult NOSAPI_CALL DestroyBuffer(nosCudaBufferInfo* cudaBuffer)
+nosResult DestroyBuffer(nosCudaBufferInfo* cudaBuffer)
 {
 	CHECK_CONTEXT_SWITCH();
 

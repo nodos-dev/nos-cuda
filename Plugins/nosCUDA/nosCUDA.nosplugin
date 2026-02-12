@@ -11,7 +11,8 @@
         "name": "nos.sys.cuda",
         "version": "3.0"
       }
-    ]
+    ],
+		"category": "Hardware Acceleration"
   },
   "sdk_version": "41.0",
   "schema_version": "1.4-v1"

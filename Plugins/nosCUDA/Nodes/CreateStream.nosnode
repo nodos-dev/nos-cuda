@@ -14,7 +14,7 @@
                 "pins": [
                     {
                         "name": "Stream",
-                        "type_name": "nos.sys.cuda.CUDAStream",
+                        "type_name": "nos.sys.cuda.Stream",
                         "show_as": "OUTPUT_PIN",
                         "can_show_as": "OUTPUT_PIN_OR_PROPERTY"
                     }
