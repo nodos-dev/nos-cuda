@@ -587,7 +587,7 @@ static nosResult CreateShareableBufferOnCudaInternal(nosCudaBufferInfo* cudaBuff
 	cuDeviceGetAttribute(&supportsWin32,
 	                     CU_DEVICE_ATTRIBUTE_HANDLE_TYPE_WIN32_HANDLE_SUPPORTED,
 	                     dev);
-	CHECK_IS_SUPPORTED(supportsVMM, HANDLE_TYPE_WIN32_HANDLE);
+	CHECK_IS_SUPPORTED(supportsWin32, HANDLE_TYPE_WIN32_HANDLE);
 
 	CUmemAllocationProp prop;
 
@@ -817,7 +817,7 @@ nosResult CreateBuffer(nosCudaBufferCreateInfo* createInfo, nosObjectReference* 
 	                                                                serializedData,
 	                                                                outCudaBufferObject);
 	if (result == NOS_RESULT_SUCCESS)
-		ResManager.Add(bufferObj->Info.Address, nos::ObjectRef::FromObjectId(outCudaBufferObject->Object));
+		ResManager.Add(bufferObj->Info.Address, outCudaBufferObject->Object);
 	return result;
 }
 
@@ -841,7 +841,7 @@ nosResult GetCudaBufferFromAddress(uint64_t address, nosObjectReference* outCuda
 	auto res = ResManager.Get(address);
 	if (res == nullptr)
 		return NOS_RESULT_FAILED;
-	auto ref = nos::ObjectRef::FromObjectId(res->GetObjectId());
+	auto ref = nos::ObjectRef::FromObjectId(*res);
 	*outCudaBufferObject = ref.Release();
 
 	return NOS_RESULT_SUCCESS;
@@ -949,6 +949,17 @@ nosResult DestroyBuffer(nosCudaBufferInfo* cudaBuffer)
 				CHECK_CUDA_DRIVER_ERROR(driverRes);
 				driverRes = cuMemAddressFree(cudaBuffer->Address, cudaBuffer->BlockSize);
 				CHECK_CUDA_DRIVER_ERROR(driverRes);
+#if defined(_WIN32)
+				if (cudaBuffer->ShareInfo.ShareableHandle != NULL)
+				{
+					auto closeRes = CloseHandle(reinterpret_cast<HANDLE>(cudaBuffer->ShareInfo.ShareableHandle));
+					if (!closeRes)
+					{
+						nosEngine.LogW("Failed to close exported CUDA shareable handle (win32 error: %lu).",
+						               GetLastError());
+					}
+				}
+#endif
 			}
 			else if (cudaBuffer->MemoryType == NOS_CUDA_MEMORY_TYPE_MANAGED || cudaBuffer->MemoryType == NOS_CUDA_MEMORY_TYPE_DEVICE)
 			{
@@ -957,7 +968,8 @@ nosResult DestroyBuffer(nosCudaBufferInfo* cudaBuffer)
 			}
 			else if (cudaBuffer->MemoryType == NOS_CUDA_MEMORY_TYPE_HOST)
 			{
-				free(reinterpret_cast<void*>(cudaBuffer->Address));
+				rtRes = cudaFreeHost(reinterpret_cast<void*>(cudaBuffer->Address));
+				CHECK_CUDA_RT_ERROR(rtRes);
 			}
 		}
 		else
@@ -1196,7 +1208,7 @@ nosResult InitializeBufferPinObject(nosFbShowAs showAs, nosUUID pinId, nosBuffer
 		if (auto* fbBuf = ObjectData<nos::sys::cuda::Buffer>::Interpret(constructorBuffer))
 		{
 			if (fbBuf->handle() != 0)
-				ResManager.Add(fbBuf->handle(), nos::ObjectRef::FromObjectId(obj.GetObjectId()));
+				ResManager.Add(fbBuf->handle(), obj.GetObjectId());
 		}
 		return nosEngine.SetPinObject(pinId, obj);
 	}

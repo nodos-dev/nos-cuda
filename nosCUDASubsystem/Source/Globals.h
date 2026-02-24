@@ -4,7 +4,7 @@
 #include <Nodos/Plugin.hpp>
 namespace nos::sys::cuda 
 {
-extern ResourceManager<nos::ObjectRef> ResManager;
+extern ResourceManager<nosObjectId> ResManager;
 extern uint32_t CurrentDevice;
 extern void* PrimaryContext;
 extern void* ActiveContext;

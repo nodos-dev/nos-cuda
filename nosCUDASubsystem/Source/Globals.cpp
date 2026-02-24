@@ -4,7 +4,7 @@
 
 namespace nos::sys::cuda
 {
-ResourceManager<nos::ObjectRef> ResManager;
+ResourceManager<nosObjectId> ResManager;
 uint32_t CurrentDevice = 0;
 void* PrimaryContext = nullptr;
 void* ActiveContext = nullptr;
