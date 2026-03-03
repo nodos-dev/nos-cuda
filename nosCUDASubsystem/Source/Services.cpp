@@ -262,7 +262,23 @@ nosResult NOSAPI_CALL LaunchModuleKernelFunction(nosCudaStreamObject stream,
                                                  void* callbackData)
 {
 	CHECK_CONTEXT_SWITCH();
+	if (!outFunction)
+	{
+		nosEngine.LogE("LaunchModuleKernelFunction failed: CUDA kernel function is null.");
+		return NOS_RESULT_INVALID_ARGUMENT;
+	}
+	if (config.GridDimensions.x == 0 || config.GridDimensions.y == 0 || config.GridDimensions.z == 0 ||
+	    config.BlockDimensions.x == 0 || config.BlockDimensions.y == 0 || config.BlockDimensions.z == 0)
+	{
+		nosEngine.LogE("LaunchModuleKernelFunction failed: invalid grid/block dimensions.");
+		return NOS_RESULT_INVALID_ARGUMENT;
+	}
 	auto streamObject = nos::GetForeignHandle<StreamObject>(stream);
+	if (!streamObject || !streamObject->Handle)
+	{
+		nosEngine.LogE("LaunchModuleKernelFunction failed: invalid CUDA stream object.");
+		return NOS_RESULT_INVALID_ARGUMENT;
+	}
 	CUresult res = cuLaunchKernel(reinterpret_cast<CUfunction>(outFunction),
 	                              config.GridDimensions.x,
 	                              config.GridDimensions.y,
