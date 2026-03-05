@@ -463,8 +463,8 @@ typedef struct nosCudaSubsystem
 #pragma region Helper Declarations & Macros
 // Make sure these are same with nossys file.
 #define NOS_CUDA_SUBSYSTEM_NAME "nos.sys.cuda"
-#define NOS_CUDA_SUBSYSTEM_VERSION_MAJOR 2
-#define NOS_CUDA_SUBSYSTEM_VERSION_MINOR 2
+#define NOS_CUDA_SUBSYSTEM_VERSION_MAJOR 3
+#define NOS_CUDA_SUBSYSTEM_VERSION_MINOR 0
 
 extern struct nosPluginInfo nosCudaPluginInfo;
 extern nosCudaSubsystem* nosCuda;

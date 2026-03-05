@@ -308,7 +308,7 @@ nosResult NOSAPI_CALL WaitStream(nosCudaStreamObject stream)
 {
 	CHECK_CONTEXT_SWITCH();
 	auto streamObject = nos::GetForeignHandle<StreamObject>(stream);
-	cudaError res = cudaStreamSynchronize(streamObject->Handle);
+	cudaError res = cudaStreamSynchronize(streamObject ? streamObject->Handle : 0);
 	CHECK_CUDA_RT_ERROR(res);
 	return NOS_RESULT_SUCCESS;
 }
